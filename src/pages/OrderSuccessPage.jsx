@@ -1,0 +1,2 @@
+import React from 'react'; import {Link,useLocation} from 'react-router-dom'; import SiteShell from '../components/SiteShell.jsx';
+export default function OrderSuccessPage(){const s=useLocation().state||{}; return <SiteShell><section className="success-page container"><div className="success-icon">✓</div><h1>Order placed</h1><p>Your order <b>{s.orderId||'ORD-DEMO'}</b> has been created successfully.</p><Link className="primary-btn" to="/orders">View My Orders</Link></section></SiteShell>}
