@@ -1,46 +1,87 @@
 import React,{useMemo,useState} from 'react';
-import { Link,useParams,useNavigate } from 'react-router-dom';
-import {Heart,ShoppingCart,ShieldCheck,RefreshCcw,BadgeCheck} from 'lucide-react';
+import {useParams,useNavigate} from 'react-router-dom';
+import {
+  Heart,
+  ShoppingCart,
+  ShieldCheck,
+  RefreshCcw,
+  BadgeCheck
+} from 'lucide-react';
+
 import SiteShell from '../components/SiteShell.jsx';
 import SafeImage from '../components/SafeImage.jsx';
 import ProductCarousel from '../components/ProductCarousel.jsx';
-import { allProducts } from '../data/catalog.js';
-import { load,save } from '../utils/localStore.js';
+
+import {allProducts} from '../data/catalog.js';
+import {load,save} from '../utils/localStore.js';
 import useAdminRows from '../hooks/useAdminRows.js';
 import {useAuth} from '../context/AuthContext.jsx';
 
 export default function ProductPage(){
+
   const {id}=useParams();
   const navigate=useNavigate();
   const {user}=useAuth();
 
   const adminProducts=useAdminRows('Products',[]);
 
-  const source=useMemo(
-    ()=>adminProducts.length
-      ? adminProducts
-          .filter(x=>x.status==='Active')
-          .map(x=>({
-            id:x.id,
-            name:x.name,
-            image:x.image,
-            saving:x.saving||'0',
-            price:String(x.value||x.price||'0'),
-            discount:x.discount||'0%',
-            rating:x.rating||'4.5',
-            mrp:x.mrp||x.value||'0',
-            category:x.category||x.notes||'Phones',
-            brand:x.brand||'Other',
-            condition:x.condition||'Refurbished',
-            stock:x.stock??0,
-            description:x.description||'Quality checked refurbished device.',
-            assured:x.assured
-          }))
-      : allProducts,
+  const mappedAdminProducts=useMemo(
+    ()=>adminProducts
+      .filter(x=>x.status==='Active')
+      .map(x=>({
+        id:x.id,
+        name:x.name,
+        image:x.image,
+        saving:x.saving||'0',
+        price:String(x.value||x.price||'0'),
+        discount:x.discount||'0%',
+        rating:x.rating||'4.5',
+        mrp:x.mrp||x.value||x.price||'0',
+        category:x.category||x.notes||'Phones',
+        brand:x.brand||'Other',
+        model:x.model||x.name||'',
+        storage:x.storage||'',
+        ram:x.ram||'',
+        color:x.color||'',
+        condition:x.condition||'Refurbished',
+        stock:x.stock??0,
+        description:
+          x.description||
+          'Quality checked refurbished device.',
+        assured:x.assured
+      })),
     [adminProducts]
   );
 
-  const p=source.find(x=>x.id===id)||source[0]||allProducts[0];
+  /*
+    Combine local catalog + Firebase/Admin products.
+    Admin product with same ID overrides local version.
+  */
+  const source=useMemo(()=>{
+
+    const map=new Map();
+
+    allProducts.forEach(product=>{
+      map.set(String(product.id),product);
+    });
+
+    mappedAdminProducts.forEach(product=>{
+      map.set(
+        String(product.id),
+        {
+          ...map.get(String(product.id)),
+          ...product
+        }
+      );
+    });
+
+    return Array.from(map.values());
+
+  },[mappedAdminProducts]);
+
+  const p=
+    source.find(x=>String(x.id)===String(id))||
+    allProducts[0];
 
   const [added,setAdded]=useState(false);
 
@@ -53,48 +94,80 @@ export default function ProductPage(){
       navigate('/login');
       return false;
     }
+
     return true;
   };
 
   const add=()=>{
     if(!requireLogin()) return;
 
-    const c=load('cart',[]);
-    const found=c.find(x=>x.id===p.id);
+    const cart=load('cart',[]);
+
+    const found=cart.find(
+      x=>String(x.id)===String(p.id)
+    );
 
     if(found){
-      found.qty+=1;
+      found.qty=(found.qty||1)+1;
     }else{
-      c.push({...p,qty:1});
+      cart.push({
+        ...p,
+        qty:1
+      });
     }
 
-    save('cart',c);
+    save('cart',cart);
     setAdded(true);
   };
 
   const toggleWish=()=>{
     if(!requireLogin()) return;
 
-    let w=load('wishlist',[]);
+    let wishlist=load('wishlist',[]);
 
-    w=w.includes(p.id)
-      ? w.filter(x=>x!==p.id)
-      : [...w,p.id];
+    wishlist=wishlist.includes(p.id)
+      ? wishlist.filter(x=>x!==p.id)
+      : [...wishlist,p.id];
 
-    save('wishlist',w);
-    setSaved(w.includes(p.id));
+    save('wishlist',wishlist);
+
+    setSaved(
+      wishlist.includes(p.id)
+    );
   };
 
-  const goToCart=(e)=>{
-    if(!user){
-      e.preventDefault();
-      navigate('/login');
-    }
+  const buyNow=()=>{
+    if(!requireLogin()) return;
+
+    /*
+      Temporary single-product checkout.
+      Existing cart is NOT modified.
+    */
+    save(
+      'buyNowItem',
+      {
+        ...p,
+        qty:1
+      }
+    );
+
+    navigate('/checkout?mode=buy-now');
   };
 
   const related=source
-    .filter(x=>x.id!==p.id&&x.category===p.category)
-    .slice(0,5);
+    .filter(
+      x=>
+        String(x.id)!==String(p.id) &&
+        x.category===p.category
+    )
+    .slice(0,7);
+
+  const variantDetails=[
+    p.ram,
+    p.storage,
+    p.color,
+    p.condition
+  ].filter(Boolean);
 
   return (
     <SiteShell>
@@ -102,10 +175,28 @@ export default function ProductPage(){
       <section className="container product-detail">
 
         <div className="detail-gallery">
+
           <SafeImage
             src={p.image}
             alt={p.name}
           />
+
+          <button
+            type="button"
+            className={`detail-wishlist ${saved?'active':''}`}
+            onClick={toggleWish}
+            aria-label={
+              saved
+                ?'Remove from wishlist'
+                :'Add to wishlist'
+            }
+          >
+            <Heart
+              size={22}
+              fill={saved?'currentColor':'none'}
+            />
+          </button>
+
         </div>
 
         <div className="detail-info">
@@ -114,7 +205,21 @@ export default function ProductPage(){
             {p.brand} · {p.condition}
           </p>
 
-          <h1>{p.name}</h1>
+          <h1>
+            {p.name}
+          </h1>
+
+          {variantDetails.length>0&&(
+            <div className="product-variant-details">
+
+              {variantDetails.map((detail,index)=>(
+                <span key={`${detail}-${index}`}>
+                  {detail}
+                </span>
+              ))}
+
+            </div>
+          )}
 
           <div className="rating-line">
             ★ {p.rating} · {p.stock} in stock
@@ -162,36 +267,41 @@ export default function ProductPage(){
 
           </div>
 
-          <div className="product-actions">
+          <div className="product-actions product-buy-actions">
 
             <button
-              className="primary-btn"
+              type="button"
+              className={`secondary-btn cart-icon-btn ${added?'added':''}`}
               onClick={add}
+              aria-label={
+                added
+                  ?'Added to cart'
+                  :'Add to cart'
+              }
+              title={
+                added
+                  ?'Added to Cart'
+                  :'Add to Cart'
+              }
             >
-              <ShoppingCart size={17}/>
-              {added?'Added to Cart':'Add to Cart'}
+              <ShoppingCart size={21}/>
             </button>
 
             <button
-              className="secondary-btn"
-              onClick={toggleWish}
+              type="button"
+              className="primary-btn buy-now-btn"
+              onClick={buyNow}
             >
-              <Heart
-                size={17}
-                fill={saved?'currentColor':'none'}
-              />
-              {saved?'Saved':'Save'}
+              BUY NOW
             </button>
-
-            <Link
-              className="secondary-btn"
-              to="/cart"
-              onClick={goToCart}
-            >
-              Go to Cart
-            </Link>
 
           </div>
+
+          {added&&(
+            <div className="added-message">
+              Added to cart
+            </div>
+          )}
 
         </div>
 

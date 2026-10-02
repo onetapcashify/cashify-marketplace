@@ -320,3 +320,254 @@ img[src=""],img:not([src]){visibility:hidden}.image-fallback{display:flex;align-
     display: none;
   }
 }
+
+/* Product wishlist heart only */
+.product-img-wrap,
+.card-image{
+  position:relative;
+}
+
+.product-wish{
+  position:absolute;
+  top:8px;
+  right:8px;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#222;
+  box-shadow:0 1px 6px rgba(0,0,0,.12);
+  z-index:3;
+  cursor:pointer;
+}
+
+.product-wish.active{
+  color:#e53935;
+}
+
+.product-variant-line{
+  font-size:12px;
+  color:#666;
+  margin:3px 0 5px;
+}
+
+/* ===== PRODUCT PAGE REQUESTED CHANGES ONLY ===== */
+
+.detail-gallery{
+  position:relative;
+}
+
+.detail-wishlist{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:42px;
+  height:42px;
+  border:1px solid #e8e8e8;
+  border-radius:50%;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  color:#222;
+  z-index:3;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.detail-wishlist.active{
+  color:#e53935;
+}
+
+.product-variant-details{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:9px 0 12px;
+}
+
+.product-variant-details span{
+  padding:6px 10px;
+  border:1px solid #e5e5e5;
+  border-radius:5px;
+  font-size:13px;
+  color:#444;
+  background:#fff;
+}
+
+.product-buy-actions{
+  display:flex;
+  align-items:stretch;
+  gap:10px;
+}
+
+.cart-icon-btn{
+  width:52px;
+  min-width:52px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.cart-icon-btn.added{
+  border-color:#42c8b7;
+  color:#168f82;
+}
+
+.buy-now-btn{
+  flex:1;
+  min-height:48px;
+}
+
+.added-message{
+  margin-top:8px;
+  font-size:13px;
+  color:#168f82;
+}
+
+/* Checkout product preview */
+.checkout-product{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:12px 0;
+  border-bottom:1px solid #eee;
+}
+
+.checkout-product img{
+  width:72px;
+  height:72px;
+  object-fit:contain;
+  flex:none;
+}
+
+.checkout-product div{
+  min-width:0;
+}
+
+.checkout-product b{
+  display:block;
+  margin-bottom:4px;
+}
+
+.checkout-product p{
+  margin:3px 0;
+  font-size:13px;
+  color:#666;
+}
+
+/* Mobile product page */
+@media (max-width:820px){
+
+  .product-detail{
+    display:block;
+    padding-bottom:78px;
+  }
+
+  .detail-gallery{
+    background:#fff;
+    margin-bottom:14px;
+  }
+
+  .detail-gallery img{
+    width:100%;
+    max-height:330px;
+    object-fit:contain;
+  }
+
+  .detail-wishlist{
+    top:10px;
+    right:10px;
+    width:40px;
+    height:40px;
+  }
+
+  .detail-info h1{
+    font-size:20px;
+    line-height:1.35;
+  }
+
+  .detail-price{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .detail-price strong{
+    font-size:24px;
+  }
+
+  .product-variant-details{
+    gap:6px;
+  }
+
+  .product-variant-details span{
+    font-size:12px;
+    padding:6px 9px;
+  }
+
+  .product-buy-actions{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:40;
+    background:#fff;
+    padding:9px 12px;
+    border-top:1px solid #e8e8e8;
+    box-shadow:0 -3px 12px rgba(0,0,0,.08);
+    gap:10px;
+  }
+
+  .product-buy-actions .cart-icon-btn{
+    width:52px;
+    min-width:52px;
+    height:48px;
+  }
+
+  .product-buy-actions .buy-now-btn{
+    height:48px;
+    margin:0;
+  }
+
+  .added-message{
+    margin-bottom:8px;
+  }
+}
+
+/* ===== FINAL PRODUCT MOBILE SAFETY FIX ===== */
+
+@media (max-width:480px){
+
+  .product-buy-actions{
+    display:flex !important;
+    grid-template-columns:none !important;
+  }
+
+  .product-buy-actions .cart-icon-btn{
+    width:52px !important;
+    min-width:52px !important;
+    flex:0 0 52px !important;
+    margin:0 !important;
+  }
+
+  .product-buy-actions .buy-now-btn{
+    width:auto !important;
+    flex:1 !important;
+    margin:0 !important;
+  }
+}
+.detail-wishlist,
+.product-wish{
+  border:none;
+}
+
+.detail-wishlist svg,
+.product-wish svg{
+  pointer-events:none;
+}

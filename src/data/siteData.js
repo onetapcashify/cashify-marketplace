@@ -55,14 +55,77 @@ export const extraSellDevices = [
 ].map(([title,file])=>({title,image:builder+file,to:'/sell'}));
 
 export const phones = [
-  ['OPPO Reno15 Pro 5G - Refurbished','cd2da442-a50c.jpg','19,400','55,599','26%','4.0','74,999'],
-  ['Samsung Galaxy S21 Ultra 5G - Refurbished','5ab3d199-fdb7.jpg','34,001','39,599','46%','4.5','73,600'],
-  ['Samsung Galaxy S24 Ultra 5G - Refurbished','a69ef28f-fe68.jpg','71,100','63,899','53%','4.8','1,34,999'],
-  ['Samsung Galaxy S20 FE 5G - Refurbished','dcbaf057-2937.jpg','17,800','21,499','29%','4.5','29,999'],
-  ['OnePlus Nord 2 5G - Refurbished','f6bf429a-1a54.jpg','14,000','18,999','26%','4.4','25,999'],
-  ['Apple iPhone - Refurbished','3ba10c91-7df6.jpg','12,000','29,999','29%','4.5','41,999']
-].map(([name,file,saving,price,discount,rating,mrp])=>({name,image:prod+file,saving,price,discount,rating,mrp,assured:estore+'658f05797b2d4354a604fe75c5c0499a.webp'}));
+  [
+    'OPPO Reno15 Pro 5G - Refurbished',
+    'cd2da442-a50c.jpg',
+    '19,400',
+    '55,599',
+    '26%',
+    '4.0',
+    '74,999'
+  ],
 
+  [
+    'Samsung Galaxy S21 Ultra 5G - Refurbished',
+    '5ab3d199-fdb7.jpg',
+    '34,001',
+    '39,599',
+    '46%',
+    '4.5',
+    '73,600'
+  ],
+
+  [
+    'Samsung Galaxy S24 Ultra 5G - Refurbished',
+    'a69ef28f-fe68.jpg',
+    '71,100',
+    '63,899',
+    '53%',
+    '4.8',
+    '1,34,999'
+  ],
+
+  [
+    'Samsung Galaxy S20 FE 5G - Refurbished',
+    'dcbaf057-2937.jpg',
+    '17,800',
+    '21,499',
+    '29%',
+    '4.5',
+    '29,999'
+  ],
+
+  [
+    'OnePlus Nord 2 5G - Refurbished',
+    'f6bf429a-1a54.jpg',
+    '14,000',
+    '18,999',
+    '26%',
+    '4.4',
+    '25,999'
+  ],
+
+  [
+    'OnePlus 12 - Refurbished',
+    '3ba10c91-7df6.jpg',
+    '26,400',
+    '38,599',
+    '41%',
+    '4.8',
+    '64,999'
+  ]
+].map(
+  ([name,file,saving,price,discount,rating,mrp])=>({
+    name,
+    image:prod+file,
+    saving,
+    price,
+    discount,
+    rating,
+    mrp,
+    assured:estore+'658f05797b2d4354a604fe75c5c0499a.webp'
+  })
+);
 export const laptops = [
   ['Dell Latitude 3000 Series 3410 (Intel Core i5 10th Gen 14 Inch)','60ee3c0ba2b54467aff8b2bc7f10af66.png','15,500','26,499','37%','5.0','41,999'],
   ['Lenovo Thinkpad T Series T14 GEN 1','9d206927f0874a8897a771c4adc9c028.webp','17,850','29,999','37%','3.6','47,849'],
