@@ -878,3 +878,235 @@ img[src=""],img:not([src]){visibility:hidden}.image-fallback{display:flex;align-
 .product-wish svg{
   pointer-events:none;
 }
+
+/* =========================================================
+   FINAL MOBILE PRODUCT GRID FIX
+========================================================= */
+
+@media (max-width: 820px){
+
+  .product-grid{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
+    max-width:100% !important;
+    overflow:visible !important;
+  }
+
+  .product-card{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    height:auto !important;
+
+    overflow:hidden !important;
+
+    display:block !important;
+
+    margin:0 !important;
+  }
+
+  .product-img-wrap{
+    position:relative !important;
+
+    width:100% !important;
+    height:170px !important;
+    min-width:0 !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    padding:10px !important;
+
+    overflow:hidden !important;
+  }
+
+  .product-img-wrap img{
+    display:block !important;
+
+    width:100% !important;
+    height:100% !important;
+
+    max-width:150px !important;
+    max-height:155px !important;
+
+    object-fit:contain !important;
+
+    margin:auto !important;
+  }
+
+  .product-wish{
+    position:absolute !important;
+
+    top:8px !important;
+    right:8px !important;
+
+    width:36px !important;
+    height:36px !important;
+
+    min-width:36px !important;
+
+    z-index:10 !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    border-radius:50% !important;
+
+    background:#fff !important;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.12) !important;
+
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  .product-card-body{
+    width:100% !important;
+    min-width:0 !important;
+
+    padding:10px !important;
+
+    overflow:hidden !important;
+  }
+
+  .product-brand{
+    font-size:12px !important;
+    line-height:1.3 !important;
+
+    margin-bottom:5px !important;
+  }
+
+  .product-card h3{
+    width:100% !important;
+
+    font-size:14px !important;
+    line-height:1.35 !important;
+
+    margin:0 0 8px !important;
+
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:unset !important;
+
+    display:-webkit-box !important;
+    -webkit-line-clamp:2 !important;
+    -webkit-box-orient:vertical !important;
+    overflow:hidden !important;
+
+    min-height:38px !important;
+  }
+
+  .product-variant-line{
+    width:100% !important;
+
+    font-size:11px !important;
+    line-height:1.35 !important;
+
+    white-space:normal !important;
+
+    margin:0 0 7px !important;
+  }
+
+  .product-rating{
+    display:flex !important;
+    align-items:center !important;
+
+    gap:3px !important;
+
+    font-size:12px !important;
+
+    margin:4px 0 !important;
+  }
+
+  .product-price-row{
+    display:flex !important;
+    align-items:center !important;
+    flex-wrap:wrap !important;
+
+    gap:5px !important;
+
+    width:100% !important;
+
+    margin-top:4px !important;
+  }
+
+  .product-price-row strong{
+    font-size:16px !important;
+    line-height:1.2 !important;
+
+    white-space:nowrap !important;
+  }
+
+  .product-price-row del{
+    font-size:12px !important;
+    line-height:1.2 !important;
+
+    white-space:nowrap !important;
+  }
+
+  .product-discount{
+    display:block !important;
+
+    width:100% !important;
+
+    font-size:12px !important;
+
+    margin-top:3px !important;
+  }
+
+}
+
+
+/* Smaller phones */
+@media (max-width: 480px){
+
+  .product-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  .product-img-wrap{
+    height:145px !important;
+    padding:8px !important;
+  }
+
+  .product-img-wrap img{
+    max-width:125px !important;
+    max-height:135px !important;
+  }
+
+  .product-card-body{
+    padding:9px !important;
+  }
+
+  .product-card h3{
+    font-size:13px !important;
+    min-height:36px !important;
+  }
+
+  .product-price-row strong{
+    font-size:15px !important;
+  }
+
+  .product-price-row del{
+    font-size:11px !important;
+  }
+
+  .product-wish{
+    width:34px !important;
+    height:34px !important;
+    min-width:34px !important;
+  }
+}
+
+
+/* Prevent full-page horizontal scrolling */
+html,
+body{
+  max-width:100%;
+  overflow-x:hidden;
+}
