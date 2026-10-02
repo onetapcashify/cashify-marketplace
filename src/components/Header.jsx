@@ -1,4 +1,5 @@
 import React,{useMemo,useState} from 'react';
+
 import {
   Search,
   MapPin,
@@ -23,12 +24,18 @@ import {
   Speaker
 } from 'lucide-react';
 
-import {Link,useNavigate} from 'react-router-dom';
+import {
+  Link,
+  useNavigate
+} from 'react-router-dom';
+
 import {allProducts} from '../data/catalog.js';
 import {useAuth} from '../context/AuthContext.jsx';
 import useAdminRows from '../hooks/useAdminRows.js';
 
+
 const menuGroups={
+
   All:[
     ['Sell','/sell'],
     ['Buy Refurbished','/buy/all'],
@@ -95,7 +102,9 @@ const menuGroups={
     ['Contact Us','/contact'],
     ['Articles','/articles']
   ]
+
 };
+
 
 const nav=[
   'All',
@@ -108,132 +117,180 @@ const nav=[
   'More'
 ];
 
+
 const pathFor=n=>
+
   n==='All'
     ?'/buy/all'
+
     :n==='Sell Phone'
       ?'/sell/phone'
+
       :n==='Sell Gadgets'
         ?'/sell'
+
         :n==='Buy Refurbished Devices'
           ?'/buy/all'
+
           :n==='Find New Gadget'
             ?'/buy/phones'
+
             :n==='Buy Laptop'
               ?'/buy/laptops'
+
               :n==='Store'
                 ?'/stores'
+
                 :'/articles';
 
+
 const iconFor=label=>
+
   label.includes('Phone')
     ?Smartphone
+
     :label.includes('Laptop')
       ?Laptop
+
       :label.includes('Watch')
         ?Watch
+
         :label.includes('Tablet')
           ?Tablet
+
           :label.includes('Gaming')
             ?Gamepad2
+
             :label.includes('TV')
               ?Tv
+
               :label.includes('Camera')
                 ?Camera
+
                 :label.includes('Speaker')
                   ?Speaker
+
                   :label.includes('Earbud')
                     ?Headphones
+
                     :label.includes('Store')
                       ?Store
+
                       :label.includes('Repair')
                         ?Wrench
+
                         :label.includes('Article')
                           ?Newspaper
+
                           :label.includes('Support')
                             ?Headphones
+
                             :label.includes('Track')
                               ?PackageSearch
+
                               :null;
+
 
 export default function Header(){
 
   const {user}=useAuth();
 
   const adminProducts=
-    useAdminRows('Products',[]);
+    useAdminRows(
+      'Products',
+      []
+    );
+
 
   /*
-    Combine catalog products + active Admin products.
+    Merge local catalog products +
+    active Admin/Firebase products.
 
-    Admin product with same ID overrides local catalog version.
+    Same product ID from Admin overrides
+    the local catalog record.
   */
   const searchProducts=useMemo(()=>{
 
-    const map=new Map();
+    const map=
+      new Map();
 
-    allProducts.forEach(p=>{
+    allProducts.forEach(product=>{
+
       map.set(
-        String(p.id),
-        p
+        String(product.id),
+        product
       );
+
     });
 
-    adminProducts
-      .filter(x=>x.status==='Active')
-      .forEach(x=>{
 
-        const p={
-          id:x.id,
+    adminProducts
+      .filter(
+        product=>
+          product.status==='Active'
+      )
+      .forEach(product=>{
+
+        const mappedProduct={
+
+          id:
+            product.id,
 
           name:
-            x.name||'',
+            product.name||'',
 
           brand:
-            x.brand||'',
+            product.brand||'',
 
           model:
-            x.model||'',
+            product.model||'',
 
           storage:
-            x.storage||'',
+            product.storage||'',
 
           ram:
-            x.ram||'',
+            product.ram||'',
 
           color:
-            x.color||'',
+            product.color||'',
 
           condition:
-            x.condition||'',
+            product.condition||'',
 
           category:
-            x.category||
-            x.notes||
+            product.category||
+            product.notes||
             '',
 
           description:
-            x.description||'',
+            product.description||'',
 
           searchText:
-            x.searchText||''
+            product.searchText||''
         };
 
+
         map.set(
-          String(p.id),
+          String(mappedProduct.id),
           {
-            ...map.get(String(p.id)),
-            ...p
+            ...map.get(
+              String(mappedProduct.id)
+            ),
+            ...mappedProduct
           }
         );
 
       });
 
+
     return [
       ...map.values()
     ];
 
-  },[adminProducts]);
+  },[
+    adminProducts
+  ]);
+
 
   const [open,setOpen]=
     useState(false);
@@ -247,9 +304,20 @@ export default function Header(){
   const navg=
     useNavigate();
 
+
   /*
-    Search name + brand + model + storage + RAM +
-    color + condition + category + description.
+    Search across:
+
+    name
+    brand
+    model
+    storage
+    RAM
+    color
+    condition
+    category
+    description
+    searchText
   */
   const suggestions=useMemo(()=>{
 
@@ -258,33 +326,39 @@ export default function Header(){
         .trim()
         .toLowerCase();
 
+
     if(!term){
       return [];
     }
+
 
     const words=
       term
         .split(/\s+/)
         .filter(Boolean);
 
+
     return searchProducts
-      .filter(p=>{
+      .filter(product=>{
 
         const searchable=[
-          p.name,
-          p.brand,
-          p.model,
-          p.storage,
-          p.ram,
-          p.color,
-          p.condition,
-          p.category,
-          p.description,
-          p.searchText
+
+          product.name,
+          product.brand,
+          product.model,
+          product.storage,
+          product.ram,
+          product.color,
+          product.condition,
+          product.category,
+          product.description,
+          product.searchText
+
         ]
           .filter(Boolean)
           .join(' ')
           .toLowerCase();
+
 
         return words.every(
           word=>
@@ -292,13 +366,21 @@ export default function Header(){
         );
 
       })
-      .slice(0,10);
+      .slice(
+        0,
+        10
+      );
 
   },[
     q,
     searchProducts
   ]);
 
+
+  /*
+    Enter/search button:
+    open complete results page.
+  */
   const submit=e=>{
 
     e?.preventDefault?.();
@@ -306,15 +388,19 @@ export default function Header(){
     const term=
       q.trim();
 
+
     navg(
       term
         ?`/buy/all?q=${encodeURIComponent(term)}`
         :'/buy/all'
     );
 
+
     setOpen(false);
     setFocus(false);
+
   };
+
 
   return (
     <>
@@ -323,16 +409,24 @@ export default function Header(){
 
         <div className="container header-row">
 
+
+          {/* LOGO */}
+
           <Link
             to="/"
             className="brand brand-logo"
             aria-label="Cashify Home"
           >
+
             <img
               src="/assets/cashify-logo.svg"
               alt="Cashify"
             />
+
           </Link>
+
+
+          {/* SEARCH */}
 
           <div className="header-search-wrap">
 
@@ -344,175 +438,312 @@ export default function Header(){
               <Search size={19}/>
 
               <input
+
                 value={q}
-                onFocus={()=>setFocus(true)}
+
+                onFocus={()=>
+                  setFocus(true)
+                }
+
                 onBlur={()=>
+
                   setTimeout(
-                    ()=>setFocus(false),
+                    ()=>{
+                      setFocus(false);
+                    },
                     160
                   )
+
                 }
+
                 onChange={e=>
-                  setQ(e.target.value)
+                  setQ(
+                    e.target.value
+                  )
                 }
+
                 aria-label="Search"
+
                 placeholder="Search for mobiles, accessories & More"
+
                 autoComplete="off"
+
               />
 
             </form>
 
+
+            {/* SEARCH SUGGESTIONS */}
+
             {focus&&q&&(
+
               <div className="search-suggestions">
 
                 {suggestions.length
-                  ?suggestions.map(p=>(
+                  ?suggestions.map(product=>(
 
                     <Link
-                      to={`/product/${p.id}`}
-                      key={p.id}
-                      onMouseDown={()=>
-                        setFocus(false)
+
+                      to={
+                        `/product/${product.id}`
                       }
+
+                      key={
+                        product.id
+                      }
+
+                      /*
+                        IMPORTANT:
+
+                        Prevent the input blur from
+                        removing the suggestion before
+                        the click navigation occurs.
+                      */
+                      onMouseDown={e=>{
+                        e.preventDefault();
+                      }}
+
+                      /*
+                        After navigation starts,
+                        close the dropdown and clear
+                        the search box.
+                      */
+                      onClick={()=>{
+
+                        setFocus(false);
+
+                        setOpen(false);
+
+                        setQ('');
+
+                      }}
+
                     >
 
                       <Search size={14}/>
 
                       <span>
-                        {p.name}
+                        {product.name}
                       </span>
 
                     </Link>
 
                   ))
+
                   :(
+
                     <button
+
                       type="button"
-                      onMouseDown={submit}
+
+                      onMouseDown={e=>{
+                        e.preventDefault();
+                      }}
+
+                      onClick={submit}
+
                     >
+
                       Search for “{q}”
+
                     </button>
+
                   )
                 }
 
               </div>
+
             )}
 
           </div>
+
+
+          {/* LOCATION */}
 
           <Link
             className="location"
             to="/stores"
           >
+
             <MapPin size={22}/>
+
             <span>
               Select City
             </span>
+
             <ChevronDown size={15}/>
+
           </Link>
+
+
+          {/* WISHLIST */}
 
           <Link
             className="icon-link desktop-only"
             to="/wishlist"
             aria-label="Wishlist"
           >
+
             <Heart size={20}/>
+
           </Link>
+
+
+          {/* CART */}
 
           <Link
             className="icon-link cart-link"
             to="/cart"
             aria-label="Cart"
           >
+
             <ShoppingCart size={20}/>
+
           </Link>
 
+
+          {/* LOGIN / ACCOUNT */}
+
           <Link
+
             className="login-btn"
+
             to={
               user
                 ?'/account'
                 :'/login'
             }
+
           >
 
             <User size={16}/>
 
             <span>
+
               {user
                 ?(
-                  user.name?.split(' ')[0]||
-                  user.displayName?.split(' ')[0]||
+                  user.name
+                    ?.split(' ')[0]||
+
+                  user.displayName
+                    ?.split(' ')[0]||
+
                   'Account'
                 )
                 :'Login'
               }
+
             </span>
 
           </Link>
 
+
+          {/* MOBILE MENU */}
+
           <button
+
+            type="button"
+
             className="menu-btn"
+
             aria-label="Open menu"
+
             onClick={()=>
-              setOpen(v=>!v)
+              setOpen(
+                value=>!value
+              )
             }
+
           >
+
             {open
               ?<X/>
               :<Menu/>
             }
+
           </button>
 
         </div>
 
       </header>
 
+
+      {/* MAIN NAVIGATION */}
+
       <nav
-        className={`navline ${open?'open':''}`}
+
+        className={
+          `navline ${
+            open
+              ?'open'
+              :''
+          }`
+        }
+
         aria-label="Primary navigation"
+
       >
 
         <div className="container nav-inner">
 
-          {nav.map(n=>(
+          {nav.map(item=>(
 
             <div
               className="nav-node"
-              key={n}
+              key={item}
             >
 
               <Link
-                to={pathFor(n)}
-                onClick={()=>
-                  !menuGroups[n]&&
-                  setOpen(false)
+
+                to={
+                  pathFor(item)
                 }
+
+                onClick={()=>{
+
+                  if(
+                    !menuGroups[item]
+                  ){
+                    setOpen(false);
+                  }
+
+                }}
+
                 className="nav-item"
+
               >
 
-                {n}
+                {item}
 
                 <ChevronDown size={14}/>
 
               </Link>
 
-              {menuGroups[n]&&(
+
+              {menuGroups[item]&&(
+
                 <div className="nav-dropdown">
 
-                  {menuGroups[n].map(
+                  {menuGroups[item].map(
                     ([label,path])=>{
 
                       const Icon=
                         iconFor(label);
 
                       return (
+
                         <Link
+
                           to={path}
+
                           onClick={()=>
                             setOpen(false)
                           }
-                          key={`${n}-${label}`}
+
+                          key={
+                            `${item}-${label}`
+                          }
+
                         >
 
                           {Icon&&(
@@ -524,11 +755,14 @@ export default function Header(){
                           </span>
 
                         </Link>
+
                       );
+
                     }
                   )}
 
                 </div>
+
               )}
 
             </div>
@@ -537,31 +771,53 @@ export default function Header(){
 
         </div>
 
+
+        {/* MOBILE QUICK LINKS */}
+
         <div className="mobile-quick-links">
 
           <Link to="/buy/phones">
+
             <Smartphone/>
+
             Phones
+
           </Link>
+
 
           <Link to="/buy/laptops">
+
             <Laptop/>
+
             Laptops
+
           </Link>
+
 
           <Link to="/buy/smartwatches">
+
             <Watch/>
+
             Watches
+
           </Link>
+
 
           <Link to="/repair">
+
             <Wrench/>
+
             Repair
+
           </Link>
 
+
           <Link to="/support">
+
             <Headphones/>
+
             Support
+
           </Link>
 
         </div>
