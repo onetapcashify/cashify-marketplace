@@ -1,11 +1,11 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import { useParams,useSearchParams,Link } from 'react-router-dom';
+import {useParams,useSearchParams,Link} from 'react-router-dom';
 import {SlidersHorizontal,Search} from 'lucide-react';
 
 import SiteShell from '../components/SiteShell.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
 
-import { allProducts,categories } from '../data/catalog.js';
+import {allProducts,categories} from '../data/catalog.js';
 import useAdminRows from '../hooks/useAdminRows.js';
 
 export default function CatalogPage(){
@@ -13,7 +13,10 @@ export default function CatalogPage(){
   const {type}=useParams();
   const [params]=useSearchParams();
 
-  const [q,setQ]=useState(params.get('q')||'');
+  const [q,setQ]=useState(
+    params.get('q')||''
+  );
+
   const [sort,setSort]=useState('featured');
   const [brand,setBrand]=useState('all');
 
@@ -21,12 +24,15 @@ export default function CatalogPage(){
     setQ(params.get('q')||'');
   },[params]);
 
-  const adminProducts=useAdminRows('Products',[]);
-  const adminCategories=useAdminRows('Categories',[]);
+  const adminProducts=
+    useAdminRows('Products',[]);
+
+  const adminCategories=
+    useAdminRows('Categories',[]);
 
   /*
-    Convert Admin / Firestore products into the same structure
-    used by catalog.js.
+    Map active Firebase/Admin products
+    into the same structure as catalog.js.
   */
   const mappedAdminProducts=useMemo(
     ()=>adminProducts
@@ -40,33 +46,61 @@ export default function CatalogPage(){
 
         saving:x.saving||'0',
 
-        price:String(x.value||x.price||'0'),
+        price:String(
+          x.value||
+          x.price||
+          '0'
+        ),
 
         discount:x.discount||'0%',
 
         rating:x.rating||'4.5',
 
-        mrp:x.mrp||x.value||x.price||'0',
+        mrp:
+          x.mrp||
+          x.value||
+          x.price||
+          '0',
 
-        category:x.category||x.notes||'Phones',
+        category:
+          x.category||
+          x.notes||
+          'Phones',
 
-        brand:x.brand||'Other',
+        brand:
+          x.brand||
+          'Other',
 
-        model:x.model||x.name||'',
+        model:
+          x.model||
+          x.name||
+          '',
 
-        storage:x.storage||'',
+        storage:
+          x.storage||
+          '',
 
-        ram:x.ram||'',
+        ram:
+          x.ram||
+          '',
 
-        color:x.color||'',
+        color:
+          x.color||
+          '',
 
-        condition:x.condition||'Refurbished',
+        condition:
+          x.condition||
+          'Refurbished',
 
-        stock:x.stock??0,
+        stock:
+          x.stock??0,
 
-        description:x.description||'',
+        description:
+          x.description||
+          '',
 
-        assured:x.assured,
+        assured:
+          x.assured,
 
         searchText:[
           x.name,
@@ -78,7 +112,8 @@ export default function CatalogPage(){
           x.condition,
           x.category,
           x.notes,
-          x.description
+          x.description,
+          x.searchText
         ]
           .filter(Boolean)
           .join(' ')
@@ -88,49 +123,51 @@ export default function CatalogPage(){
   );
 
   /*
-    IMPORTANT:
-    Combine local catalog + Admin products.
+    Combine local catalog + Firebase/Admin products.
 
-    Previously:
-      adminProducts.length ? adminProducts : allProducts
-
-    meant that adding even one Firestore product caused the
-    whole local catalog to disappear.
-
-    Now Admin products only override a matching product ID.
+    Admin record wins only when the same ID exists.
   */
   const source=useMemo(()=>{
 
-    const productMap=new Map();
+    const map=new Map();
 
     allProducts.forEach(product=>{
-      productMap.set(String(product.id),product);
+      map.set(
+        String(product.id),
+        product
+      );
     });
 
     mappedAdminProducts.forEach(product=>{
-      productMap.set(String(product.id),{
-        ...productMap.get(String(product.id)),
-        ...product
-      });
+      map.set(
+        String(product.id),
+        {
+          ...map.get(
+            String(product.id)
+          ),
+          ...product
+        }
+      );
     });
 
-    return Array.from(productMap.values());
+    return [...map.values()];
 
   },[mappedAdminProducts]);
 
   const normalized=
     type==='all'
-      ? null
-      : String(type||'').toLowerCase();
+      ?null
+      :String(type||'')
+        .toLowerCase();
 
   const title=
     type==='laptops'
-      ? 'Refurbished Laptops'
-      : type==='phones'
-        ? 'Refurbished Phones'
-        : type&&type!=='all'
-          ? `${type[0].toUpperCase()+type.slice(1)} Devices`
-          : 'Buy Refurbished Devices';
+      ?'Refurbished Laptops'
+      :type==='phones'
+        ?'Refurbished Phones'
+        :type&&type!=='all'
+          ?`${type[0].toUpperCase()+type.slice(1)} Devices`
+          :'Buy Refurbished Devices';
 
   const brands=useMemo(
     ()=>[
@@ -143,32 +180,36 @@ export default function CatalogPage(){
     [source]
   );
 
-  const liveCategories=adminCategories.length
-    ? adminCategories
-        .filter(x=>x.status==='Active')
+  const liveCategories=
+    adminCategories.length
+      ?adminCategories
+        .filter(
+          x=>x.status==='Active'
+        )
         .map(x=>({
           name:x.name,
+
           slug:
             x.slug||
             x.name
               .toLowerCase()
-              .replace(/[^a-z0-9]+/g,'-')
-              .replace(/^-|-$/g,'')
+              .replace(
+                /[^a-z0-9]+/g,
+                '-'
+              )
+              .replace(
+                /^-|-$/g,
+                ''
+              )
         }))
-    : categories;
+      :categories;
 
   const items=useMemo(()=>{
 
-    let a=[...source];
+    let result=[...source];
 
     /*
       Category filter.
-
-      Supports:
-      Phones -> phones
-      Laptops -> laptops
-      Smartwatches -> smartwatches
-      etc.
     */
     if(normalized){
 
@@ -176,31 +217,41 @@ export default function CatalogPage(){
         String(value||'')
           .toLowerCase()
           .trim()
-          .replace(/[^a-z0-9]+/g,'-');
+          .replace(
+            /[^a-z0-9]+/g,
+            '-'
+          );
 
-      a=a.filter(p=>
-        normalizeCategory(p.category)===normalized
+      result=result.filter(
+        p=>
+          normalizeCategory(
+            p.category
+          )===normalized
       );
     }
 
     /*
-      Full product search.
-
-      Searches actual product fields instead of only:
-      name + brand + category.
+      Full search:
+      name
+      brand
+      model
+      storage
+      RAM
+      color
+      condition
+      category
+      description
     */
     if(q.trim()){
 
-      const term=q
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g,' ');
+      const words=
+        q
+          .trim()
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(Boolean);
 
-      const words=term
-        .split(' ')
-        .filter(Boolean);
-
-      a=a.filter(p=>{
+      result=result.filter(p=>{
 
         const searchable=[
           p.name,
@@ -216,25 +267,23 @@ export default function CatalogPage(){
         ]
           .filter(Boolean)
           .join(' ')
-          .toLowerCase()
-          .replace(/\s+/g,' ');
+          .toLowerCase();
 
-        /*
-          All entered words should exist somewhere in
-          the product information.
-
-          Example:
-          "iphone 256" will match
-          Apple iPhone 15 - 256 GB - ...
-        */
-        return words.every(word=>
-          searchable.includes(word)
+        return words.every(
+          word=>
+            searchable.includes(word)
         );
+
       });
     }
 
+    /*
+      Brand filter.
+    */
     if(brand!=='all'){
-      a=a.filter(p=>p.brand===brand);
+      result=result.filter(
+        p=>p.brand===brand
+      );
     }
 
     const num=value=>
@@ -244,27 +293,34 @@ export default function CatalogPage(){
           .replace(/[^\d.]/g,'')
       )||0;
 
+    /*
+      Sorting.
+    */
     if(sort==='price-low'){
-      a=[...a].sort(
-        (x,y)=>num(x.price)-num(y.price)
+      result=[...result].sort(
+        (a,b)=>
+          num(a.price)-
+          num(b.price)
       );
     }
 
     if(sort==='price-high'){
-      a=[...a].sort(
-        (x,y)=>num(y.price)-num(x.price)
+      result=[...result].sort(
+        (a,b)=>
+          num(b.price)-
+          num(a.price)
       );
     }
 
     if(sort==='rating'){
-      a=[...a].sort(
-        (x,y)=>
-          Number(y.rating||0)-
-          Number(x.rating||0)
+      result=[...result].sort(
+        (a,b)=>
+          Number(b.rating||0)-
+          Number(a.rating||0)
       );
     }
 
-    return a;
+    return result;
 
   },[
     source,
@@ -273,6 +329,9 @@ export default function CatalogPage(){
     sort,
     brand
   ]);
+
+  const isSearching=
+    Boolean(q.trim());
 
   return (
     <SiteShell>
@@ -286,9 +345,10 @@ export default function CatalogPage(){
           </p>
 
           <h1>
-            {q.trim()
-              ? `Search results for "${q.trim()}"`
-              : title}
+            {isSearching
+              ?`Search results for "${q.trim()}"`
+              :title
+            }
           </h1>
 
           <p>
@@ -299,19 +359,34 @@ export default function CatalogPage(){
 
       </section>
 
-      <section className="container category-chips">
+      {/*
+        IMPORTANT:
+        Hide category chips while searching.
 
-        {liveCategories.map(c=>(
-          <Link
-            className={type===c.slug?'active':''}
-            to={`/buy/${c.slug}`}
-            key={c.slug}
-          >
-            {c.name}
-          </Link>
-        ))}
+        This prevents search results from
+        looking like category-only navigation.
+      */}
+      {!isSearching&&(
+        <section className="container category-chips">
 
-      </section>
+          {liveCategories.map(c=>(
+
+            <Link
+              className={
+                type===c.slug
+                  ?'active'
+                  :''
+              }
+              to={`/buy/${c.slug}`}
+              key={c.slug}
+            >
+              {c.name}
+            </Link>
+
+          ))}
+
+        </section>
+      )}
 
       <section className="container page-section">
 
@@ -323,7 +398,9 @@ export default function CatalogPage(){
 
             <input
               value={q}
-              onChange={e=>setQ(e.target.value)}
+              onChange={e=>
+                setQ(e.target.value)
+              }
               placeholder="Search products, model, storage or brand"
             />
 
@@ -331,7 +408,9 @@ export default function CatalogPage(){
 
           <select
             value={brand}
-            onChange={e=>setBrand(e.target.value)}
+            onChange={e=>
+              setBrand(e.target.value)
+            }
           >
 
             <option value="all">
@@ -351,7 +430,9 @@ export default function CatalogPage(){
 
           <select
             value={sort}
-            onChange={e=>setSort(e.target.value)}
+            onChange={e=>
+              setSort(e.target.value)
+            }
           >
 
             <option value="featured">
@@ -383,10 +464,12 @@ export default function CatalogPage(){
         </div>
 
         {items.length
-          ? (
-            <ProductGrid items={items}/>
+          ?(
+            <ProductGrid
+              items={items}
+            />
           )
-          : (
+          :(
             <div className="empty-state">
 
               <h2>
@@ -408,7 +491,8 @@ export default function CatalogPage(){
               </button>
 
             </div>
-          )}
+          )
+        }
 
       </section>
 

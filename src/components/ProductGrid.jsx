@@ -1,19 +1,31 @@
 import React,{useState} from 'react';
 import {Link,useNavigate} from 'react-router-dom';
-import {Heart} from 'lucide-react';
+import {Heart,Star} from 'lucide-react';
+
 import SafeImage from './SafeImage.jsx';
 import {load,save} from '../utils/localStore.js';
 import {useAuth} from '../context/AuthContext.jsx';
 
 function WishlistHeart({productId}){
-  const {user}=useAuth();
+
   const navigate=useNavigate();
+  const {user}=useAuth();
 
   const [saved,setSaved]=useState(
-    ()=>load('wishlist',[]).includes(productId)
+    ()=>load('wishlist',[])
+      .some(
+        id=>
+          String(id)===
+          String(productId)
+      )
   );
 
-  const toggleWishlist=e=>{
+  const toggle=e=>{
+
+    /*
+      Prevent card Link from opening
+      when user clicks the heart.
+    */
     e.preventDefault();
     e.stopPropagation();
 
@@ -22,101 +34,164 @@ function WishlistHeart({productId}){
       return;
     }
 
-    let wishlist=load('wishlist',[]);
+    let wishlist=
+      load('wishlist',[]);
 
-    wishlist=wishlist.includes(productId)
-      ? wishlist.filter(id=>id!==productId)
-      : [...wishlist,productId];
+    const exists=
+      wishlist.some(
+        id=>
+          String(id)===
+          String(productId)
+      );
 
-    save('wishlist',wishlist);
-    setSaved(wishlist.includes(productId));
+    if(exists){
+
+      wishlist=
+        wishlist.filter(
+          id=>
+            String(id)!==
+            String(productId)
+        );
+
+    }else{
+
+      wishlist=[
+        ...wishlist,
+        productId
+      ];
+    }
+
+    save(
+      'wishlist',
+      wishlist
+    );
+
+    setSaved(!exists);
   };
 
   return (
-    <span
-      className={`product-wish ${saved?'active':''}`}
-      role="button"
-      tabIndex={0}
-      aria-label={saved?'Remove from wishlist':'Add to wishlist'}
-      onClick={toggleWishlist}
-      onKeyDown={e=>{
-        if(e.key==='Enter'||e.key===' '){
-          toggleWishlist(e);
-        }
-      }}
+    <button
+      type="button"
+      className={
+        `product-wish ${
+          saved?'active':''
+        }`
+      }
+      onClick={toggle}
+      aria-label={
+        saved
+          ?'Remove from wishlist'
+          :'Add to wishlist'
+      }
     >
       <Heart
         size={19}
-        fill={saved?'currentColor':'none'}
+        fill={
+          saved
+            ?'currentColor'
+            :'none'
+        }
       />
-    </span>
+    </button>
   );
 }
 
-export default function ProductGrid({items}){
+export default function ProductGrid({items=[]}){
+
   return (
     <div className="product-grid">
 
-      {items.map(p=>(
+      {items.map(product=>(
+
         <Link
-          to={`/product/${p.id}`}
-          className="product-tile"
-          key={p.id}
+          to={`/product/${product.id}`}
+          className="product-card"
+          key={product.id}
         >
 
           <div className="product-img-wrap">
 
             <SafeImage
-              src={p.image}
-              alt={p.name}
+              src={product.image}
+              alt={product.name}
             />
 
-            <WishlistHeart productId={p.id}/>
+            <WishlistHeart
+              productId={product.id}
+            />
 
           </div>
 
-          <div className="saving">
-            ₹{p.saving} OFF
-          </div>
+          <div className="product-card-body">
 
-          <h3>
-            {p.name}
-          </h3>
+            {product.brand&&(
+              <div className="product-brand">
+                {product.brand}
+              </div>
+            )}
 
-          {(p.storage||p.ram)&&(
-            <div className="product-variant-line">
-              {[p.ram,p.storage]
-                .filter(Boolean)
-                .join(' • ')
-              }
+            <h3>
+              {product.name}
+            </h3>
+
+            {(product.ram||
+              product.storage||
+              product.condition)&&(
+
+              <div className="product-variant-line">
+
+                {[
+                  product.ram,
+                  product.storage,
+                  product.condition
+                ]
+                  .filter(Boolean)
+                  .join(' • ')
+                }
+
+              </div>
+
+            )}
+
+            {product.rating&&(
+              <div className="product-rating">
+
+                <Star
+                  size={14}
+                  fill="currentColor"
+                />
+
+                <span>
+                  {product.rating}
+                </span>
+
+              </div>
+            )}
+
+            <div className="product-price-row">
+
+              <strong>
+                ₹{product.price}
+              </strong>
+
+              {product.mrp&&(
+                <del>
+                  ₹{product.mrp}
+                </del>
+              )}
+
             </div>
-          )}
 
-          <div className="product-meta">
-
-            <span>
-              {p.condition||'Refurbished'}
-            </span>
-
-            <span>
-              ★ {p.rating}
-            </span>
-
-          </div>
-
-          <div className="prices">
-
-            <strong>
-              ₹{p.price}
-            </strong>
-
-            <del>
-              ₹{p.mrp}
-            </del>
+            {product.discount&&(
+              <div className="product-discount">
+                {product.discount} OFF
+              </div>
+            )}
 
           </div>
 
         </Link>
+
       ))}
 
     </div>

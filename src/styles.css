@@ -571,3 +571,310 @@ img[src=""],img:not([src]){visibility:hidden}.image-fallback{display:flex;align-
 .product-wish svg{
   pointer-events:none;
 }
+
+/* Product cards are clickable */
+.product-card{
+  display:block;
+  text-decoration:none;
+  color:inherit;
+  cursor:pointer;
+}
+
+.product-card:hover{
+  color:inherit;
+}
+
+.product-img-wrap{
+  position:relative;
+}
+
+.product-wish{
+  position:absolute;
+  top:8px;
+  right:8px;
+  z-index:5;
+}
+
+/* =========================================================
+   MOBILE PRODUCT PAGE FINAL FIX
+   Does not change desktop layout
+========================================================= */
+
+@media (max-width: 820px){
+
+  .product-detail{
+    display:block;
+    padding-bottom:88px;
+  }
+
+  .detail-gallery{
+    position:relative;
+    width:100%;
+    min-height:280px;
+    background:#fff;
+    border-radius:14px;
+    padding:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+
+  .detail-gallery img{
+    width:100%;
+    max-width:320px;
+    height:auto;
+    max-height:320px;
+    object-fit:contain;
+    display:block;
+    margin:auto;
+  }
+
+  .detail-wishlist{
+    position:absolute;
+    top:12px;
+    right:12px;
+    z-index:5;
+
+    width:42px;
+    height:42px;
+
+    border-radius:50%;
+    border:1px solid #e5e5e5;
+    background:#fff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:0;
+    margin:0;
+    cursor:pointer;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+
+  .detail-wishlist.active{
+    color:#e53935;
+  }
+
+  .detail-info{
+    padding-top:18px;
+  }
+
+  .detail-info .eyebrow{
+    margin-bottom:6px;
+    font-size:13px;
+  }
+
+  .detail-info h1{
+    font-size:21px;
+    line-height:1.35;
+    margin:0 0 12px;
+  }
+
+  .product-variant-details{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:10px 0 14px;
+  }
+
+  .product-variant-details span{
+    padding:7px 11px;
+    border:1px solid #dedede;
+    border-radius:8px;
+    background:#fff;
+    font-size:12px;
+    line-height:1;
+  }
+
+  .rating-line{
+    margin:8px 0;
+    font-size:13px;
+  }
+
+  .detail-price{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:10px 0;
+  }
+
+  .detail-price strong{
+    font-size:24px;
+  }
+
+  .detail-price del{
+    font-size:14px;
+  }
+
+  .detail-price span{
+    font-size:12px;
+  }
+
+  .detail-info > p:not(.eyebrow){
+    font-size:14px;
+    line-height:1.55;
+  }
+
+  .assurance-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:18px;
+  }
+
+  .assurance-grid > div{
+    padding:10px 6px;
+    text-align:center;
+  }
+
+  .assurance-grid svg{
+    width:20px;
+    height:20px;
+  }
+
+  .assurance-grid b{
+    display:block;
+    font-size:11px;
+    margin-top:5px;
+  }
+
+  .assurance-grid span{
+    display:block;
+    font-size:10px;
+    line-height:1.3;
+  }
+
+  /*
+    Sticky bottom actions:
+    cart icon + BUY NOW
+  */
+  .product-buy-actions{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+
+    z-index:60;
+
+    display:flex !important;
+    align-items:center;
+    gap:10px;
+
+    width:100%;
+    padding:10px 14px;
+
+    background:#fff;
+    border-top:1px solid #e7e7e7;
+
+    box-shadow:
+      0 -4px 14px rgba(0,0,0,.08);
+
+    margin:0 !important;
+  }
+
+  .product-buy-actions .cart-icon-btn{
+    width:54px !important;
+    min-width:54px !important;
+    height:48px;
+
+    flex:0 0 54px !important;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  .product-buy-actions .buy-now-btn{
+    flex:1 !important;
+
+    width:auto !important;
+    min-height:48px;
+
+    margin:0 !important;
+  }
+
+  .added-message{
+    margin-top:10px;
+    font-size:13px;
+  }
+
+  /*
+    Make sure related products are not hidden
+    behind fixed mobile action bar.
+  */
+  .product-detail + .section{
+    padding-bottom:90px;
+  }
+}
+
+
+/* =========================================================
+   EXTRA SMALL MOBILE SAFETY FIX
+========================================================= */
+
+@media (max-width: 480px){
+
+  /*
+    Existing .product-actions mobile grid rules
+    must not override our Buy Now bar.
+  */
+  .product-buy-actions{
+    display:flex !important;
+    grid-template-columns:none !important;
+  }
+
+  .product-buy-actions .cart-icon-btn{
+    width:52px !important;
+    min-width:52px !important;
+    flex:0 0 52px !important;
+  }
+
+  .product-buy-actions .buy-now-btn{
+    width:auto !important;
+    flex:1 !important;
+  }
+
+  .detail-gallery{
+    min-height:250px;
+    padding:12px;
+  }
+
+  .detail-gallery img{
+    max-width:280px;
+    max-height:280px;
+  }
+
+  .detail-info h1{
+    font-size:19px;
+  }
+
+  .detail-price strong{
+    font-size:22px;
+  }
+
+  .assurance-grid{
+    gap:6px;
+  }
+}
+
+
+/* =========================================================
+   WISHLIST BUTTON SAFETY
+========================================================= */
+
+.detail-wishlist,
+.product-wish{
+  border:none;
+}
+
+.detail-wishlist svg,
+.product-wish svg{
+  pointer-events:none;
+}
