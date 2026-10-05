@@ -1,6 +1,7 @@
-import React from 'react';
+import React,{useMemo} from 'react';
 import {Link} from 'react-router-dom';
 import Header from '../components/Header.jsx';
+import MobileBottomNav from '../components/MobileBottomNav.jsx';
 import Hero from '../components/Hero.jsx';
 import ServiceGrid from '../components/ServiceGrid.jsx';
 import SectionHeading from '../components/SectionHeading.jsx';
@@ -11,6 +12,8 @@ import { services, sellDevices, phones, laptops, stores, faqs, hotDeals, buyArti
 import { MapPin, Star, ChevronDown, Quote, ArrowRight } from 'lucide-react';
 import useAdminRows from '../hooks/useAdminRows.js';
 import { allProducts } from '../data/catalog.js';
+import {referenceProducts} from '../data/referenceProducts.js';
+import {getHomeRefurbishedProducts} from '../data/homeFeaturedProducts.js';
 
 function StoryRail({title,items}){return <section className="container section story-section"><SectionHeading title={title} action="See all"/><div className="story-row">{items.map((x,i)=><Link to={x.to} className="story-card" key={`${x.title}-${i}`}><SafeImage src={x.image} alt={x.title}/><span>{x.title}</span></Link>)}</div></section>}
 
@@ -26,12 +29,19 @@ export default function HomePage(){
   const liveFaqs=faqRows.length?faqRows.filter(x=>x.status==='Active').map(x=>[x.name,x.notes||x.value||'']):faqs;
   const liveArticles=articleRows.length?articleRows.filter(x=>x.status==='Active').map(x=>({id:x.id,title:x.name,image:x.image,to:`/articles/${x.id}`,date:x.value||'',excerpt:x.notes||''})):buyArticles;
   const liveNews=newsRows.length?newsRows.filter(x=>x.status==='Active').map(x=>({id:x.id,title:x.name,image:x.image,date:x.value||''})):recentNews;
+  const homeRefurbishedProducts=useMemo(
+  ()=>
+    getHomeRefurbishedProducts(
+      allProducts,
+      referenceProducts
+    ),
+  []
+);
   return <div><Header/><main>
     <div className="container hero-container"><Hero slides={liveSlides&&liveSlides.length?liveSlides:undefined}/></div>
     <section className="container section"><SectionHeading title="Our Services"/><ServiceGrid items={liveServices}/></section>
     <section className="container section"><SectionHeading title="Sell Your Old Device Now"/><ServiceGrid items={sellDevices} compact/></section>
-    <section className="container section"><SectionHeading title="Buy Refurbished Devices" action="View All"/><ProductCarousel items={livePhones.length?livePhones:phones}/></section>
-    <section className="container section"><SectionHeading title="Refurbished Laptops" action="View All"/><ProductCarousel items={liveLaptops.length?liveLaptops:laptops}/></section>
+    <section className="container section"><SectionHeading title="Buy Refurbished Devices" action="View All"/><ProductCarousel items={homeRefurbishedProducts.length?homeRefurbishedProducts:(livePhones.length?livePhones:phones)}/></section>    <section className="container section"><SectionHeading title="Refurbished Laptops" action="View All"/><ProductCarousel items={liveLaptops.length?liveLaptops:laptops}/></section>
 
     <section className="hot-deals-band"><div className="container hot"><SectionHeading title="Hot Deals"/><p>Exciting offers for more value</p><div className="hot-row">{liveDeals.map(x=><Link to={x.to} key={x.title}><SafeImage src={x.image} alt={x.title}/></Link>)}</div></div></section>
 
@@ -51,5 +61,6 @@ export default function HomePage(){
     <section className="container app-banner"><div><h2>Download the App</h2><p>Sell your old phone | Buy top-quality refurbished phones | Get your phone repaired</p><div className="app-buttons"><a href="#" aria-label="Google Play"><SafeImage src={appAssets.android} alt="Google Play"/></a><a href="#" aria-label="App Store"><SafeImage src={appAssets.ios} alt="App Store"/></a></div></div><SafeImage src={appAssets.banner} alt="Download Cashify app"/></section>
 
     <section className="container seo-copy"><h2>Sell Your Old Phone & Buy Old Mobile Phones with Cashify</h2><p>Cashify is a platform for selling old mobile phones, buying refurbished devices, getting gadgets repaired and finding nearby experience centres.</p><h2>Sell Your Old Phone</h2><p>Choose your device, provide model and condition details, receive an estimated quote and schedule a pickup. Final value can be confirmed after physical verification.</p><h2>Buy Refurbished Devices</h2><p>Browse quality-checked devices, compare prices and condition, add products to cart and complete checkout using the available payment options.</p></section>
-  </main><Footer/></div>
+  </main><Footer/>
+  <MobileBottomNav/></div>
 }

@@ -1,5 +1,7 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import {Routes,Route,Navigate} from 'react-router-dom';
+
+import ScrollToTop from './components/ScrollToTop.jsx';
 
 import ProtectedUser from './components/ProtectedUser.jsx';
 import ProtectedAdmin from './components/ProtectedAdmin.jsx';
@@ -27,113 +29,199 @@ import OrdersPage from './pages/OrdersPage.jsx';
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx';
 
 export default function App(){
+
   return (
-    <Routes>
+    <>
 
-      <Route path="/" element={<HomePage/>}/>
+      <ScrollToTop/>
 
-      <Route path="/buy/:type" element={<CatalogPage/>}/>
-      <Route path="/product/:id" element={<ProductPage/>}/>
+      <Routes>
 
-      <Route path="/sell" element={<SellPage/>}/>
-      <Route path="/sell/:type" element={<SellPage/>}/>
+        <Route
+          path="/"
+          element={<HomePage/>}
+        />
 
-      <Route path="/repair" element={<RepairPage/>}/>
-      <Route path="/repair/:type" element={<RepairPage/>}/>
+        <Route
+          path="/buy/:type"
+          element={<CatalogPage/>}
+        />
 
-      <Route path="/stores" element={<StoresPage/>}/>
+        <Route
+          path="/product/:id"
+          element={<ProductPage/>}
+        />
 
-      <Route
-        path="/cart"
-        element={
-          <ProtectedUser>
-            <CartPage/>
-          </ProtectedUser>
-        }
-      />
+        <Route
+          path="/sell"
+          element={<SellPage/>}
+        />
 
-      <Route
-        path="/checkout"
-        element={
-          <ProtectedUser>
-            <CheckoutPage/>
-          </ProtectedUser>
-        }
-      />
+        <Route
+          path="/sell/:type"
+          element={<SellPage/>}
+        />
 
-      <Route
-        path="/order-success"
-        element={
-          <ProtectedUser>
-            <OrderSuccessPage/>
-          </ProtectedUser>
-        }
-      />
+        <Route
+          path="/repair"
+          element={<RepairPage/>}
+        />
 
-      <Route path="/login" element={<AuthPage/>}/>
+        <Route
+          path="/repair/:type"
+          element={<RepairPage/>}
+        />
 
-      <Route
-        path="/account"
-        element={
-          <ProtectedUser>
-            <AccountPage/>
-          </ProtectedUser>
-        }
-      />
+        <Route
+          path="/stores"
+          element={<StoresPage/>}
+        />
 
-      <Route
-        path="/orders"
-        element={
-          <ProtectedUser>
-            <OrdersPage/>
-          </ProtectedUser>
-        }
-      />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedUser>
+              <CartPage/>
+            </ProtectedUser>
+          }
+        />
 
-      <Route
-        path="/wishlist"
-        element={
-          <ProtectedUser>
-            <WishlistPage/>
-          </ProtectedUser>
-        }
-      />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedUser>
+              <CheckoutPage/>
+            </ProtectedUser>
+          }
+        />
 
-      <Route path="/compare" element={<CatalogPage/>}/>
+        <Route
+          path="/order-success"
+          element={
+            <ProtectedUser>
+              <OrderSuccessPage/>
+            </ProtectedUser>
+          }
+        />
 
-      <Route path="/articles" element={<BlogPage/>}/>
-      <Route path="/articles/:id" element={<ArticlePage/>}/>
+        <Route
+          path="/login"
+          element={<AuthPage/>}
+        />
 
-      <Route path="/support" element={<SupportPage/>}/>
-      <Route path="/track-order" element={<SupportPage kind="track"/>}/>
+        <Route
+          path="/account"
+          element={
+            <ProtectedUser>
+              <AccountPage/>
+            </ProtectedUser>
+          }
+        />
 
-      <Route path="/about" element={<InfoPage kind="about"/>}/>
-      <Route path="/contact" element={<ContactPage/>}/>
-      <Route path="/faq" element={<FaqPage/>}/>
-      <Route path="/terms" element={<InfoPage kind="terms"/>}/>
-      <Route path="/privacy" element={<InfoPage kind="privacy"/>}/>
-      <Route path="/warranty" element={<InfoPage kind="warranty"/>}/>
-      <Route path="/returns" element={<InfoPage kind="returns"/>}/>
+        <Route
+          path="/orders"
+          element={
+            <ProtectedUser>
+              <OrdersPage/>
+            </ProtectedUser>
+          }
+        />
 
-      <Route
-        path="/admin/login"
-        element={<AdminLoginPage/>}
-      />
+        <Route
+          path="/wishlist"
+          element={
+            <ProtectedUser>
+              <WishlistPage/>
+            </ProtectedUser>
+          }
+        />
 
-      <Route
-        path="/admin"
-        element={
-          <ProtectedAdmin>
-            <AdminPage/>
-          </ProtectedAdmin>
-        }
-      />
+        <Route
+          path="/compare"
+          element={<CatalogPage/>}
+        />
 
-      <Route
-        path="*"
-        element={<Navigate to="/" replace/>}
-      />
+        <Route
+          path="/articles"
+          element={<BlogPage/>}
+        />
 
-    </Routes>
+        <Route
+          path="/articles/:id"
+          element={<ArticlePage/>}
+        />
+
+        <Route
+          path="/support"
+          element={<SupportPage/>}
+        />
+
+        <Route
+          path="/track-order"
+          element={<SupportPage kind="track"/>}
+        />
+
+        <Route
+          path="/about"
+          element={<InfoPage kind="about"/>}
+        />
+
+        <Route
+          path="/contact"
+          element={<ContactPage/>}
+        />
+
+        <Route
+          path="/faq"
+          element={<FaqPage/>}
+        />
+
+        <Route
+          path="/terms"
+          element={<InfoPage kind="terms"/>}
+        />
+
+        <Route
+          path="/privacy"
+          element={<InfoPage kind="privacy"/>}
+        />
+
+        <Route
+          path="/warranty"
+          element={<InfoPage kind="warranty"/>}
+        />
+
+        <Route
+          path="/returns"
+          element={<InfoPage kind="returns"/>}
+        />
+
+        <Route
+          path="/admclonemin/login"
+          element={<AdminLoginPage/>}
+        />
+
+        <Route
+          path="/admclonemin"
+          element={
+            <ProtectedAdmin>
+              <AdminPage/>
+            </ProtectedAdmin>
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
+          }
+        />
+
+      </Routes>
+
+    </>
   );
 }

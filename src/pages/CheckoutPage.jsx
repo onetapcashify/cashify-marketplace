@@ -557,12 +557,68 @@ export default function CheckoutPage(){
                 <b>Order:</b> {order}
               </p>
 
-              <a
-                className="upi-button"
-                href={uri}
-              >
-                Pay Using UPI App
-              </a>
+              <div className="upi-payment-options">
+
+  <a
+    className="upi-pay-option"
+    href={uri}
+  >
+    <div className="upi-pay-icon phonepe-icon">
+      P
+    </div>
+
+    <div>
+      <strong>Pay with PhonePe</strong>
+      <span>Pay using installed UPI app</span>
+    </div>
+  </a>
+
+
+  <a
+    className="upi-pay-option"
+    href={uri}
+  >
+    <div className="upi-pay-icon gpay-icon">
+      G
+    </div>
+
+    <div>
+      <strong>Pay with Google Pay</strong>
+      <span>Pay using installed UPI app</span>
+    </div>
+  </a>
+
+
+  <a
+    className="upi-pay-option"
+    href={uri}
+  >
+    <div className="upi-pay-icon paytm-icon">
+      ₹
+    </div>
+
+    <div>
+      <strong>Pay with Paytm</strong>
+      <span>Pay using installed UPI app</span>
+    </div>
+  </a>
+
+
+  <a
+    className="upi-pay-option any-upi"
+    href={uri}
+  >
+    <div className="upi-pay-icon">
+      UPI
+    </div>
+
+    <div>
+      <strong>Pay Using Any UPI App</strong>
+      <span>BHIM, bank apps or any supported UPI app</span>
+    </div>
+  </a>
+
+</div>
 
               <input
                 value={utr}
