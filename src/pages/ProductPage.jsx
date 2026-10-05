@@ -8678,7 +8678,12 @@ const price=money(product.price);
 
 
 
-        <div className="pdp-mobile-actions">
+        <div
+          className="pdp-mobile-actions"
+          style={{
+            gridTemplateColumns:'58px 1fr 1fr'
+          }}
+        >
 
 
 
@@ -8707,6 +8712,58 @@ const price=money(product.price);
 
 
             <ShoppingCart size={22}/>
+
+
+
+          </button>
+
+
+
+
+
+
+
+          <button
+
+
+
+            type="button"
+
+
+
+            onClick={payWithEmi}
+
+            style={{
+              display:'flex',
+              flexDirection:'column',
+              alignItems:'center',
+              justifyContent:'center',
+              gap:'1px',
+              background:'#fff',
+              border:'2px solid #101820',
+              color:'#000',
+              fontWeight:700
+            }}
+
+
+
+          >
+
+
+
+            Pay with EMI
+
+            <small
+              style={{
+                display:'block',
+                fontSize:'8px',
+                fontWeight:500,
+                lineHeight:1.1,
+                whiteSpace:'nowrap'
+              }}
+            >
+              From ₹{emi.toLocaleString('en-IN')}/month
+            </small>
 
 
 
