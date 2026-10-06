@@ -635,6 +635,114 @@ export default function CatalogPage(){
 
 
 
+    /*
+      PRODUCT LISTING:
+      Show only one card per actual model.
+      Storage/RAM/colour/condition variants stay available
+      inside the product page instead of repeating the same
+      model many times in the catalogue.
+    */
+    const modelMap=new Map();
+
+    const modelKey=product=>{
+
+      const brandKey=
+        String(product?.brand||'')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g,'-');
+
+      const rawValue=
+        String(
+          product?.model||
+          product?.name||
+          product?.id||
+          ''
+        )
+          .trim()
+          .toLowerCase();
+
+      /*
+        Variant names can look like:
+        "OPPO Reno15 Pro 5G - Refurbished - 8 GB RAM - 256 GB - Blue - Refurbished"
+
+        Everything after the first " - Refurbished" is only
+        RAM/storage/colour/condition variant information.
+        The catalogue should show the actual model once.
+      */
+      const baseModel=
+        rawValue
+          .split(/\s*-\s*refurbished\b/i)[0]
+          .replace(
+            /\s*-\s*\d+\s*gb\s*ram\b.*$/i,
+            ''
+          )
+          .replace(
+            /\s*-\s*\d+\s*(gb|tb)\b.*$/i,
+            ''
+          )
+          .trim();
+
+      const rawModel=
+        baseModel
+          .replace(/[^a-z0-9]+/g,'-')
+          .replace(/^-|-$/g,'');
+
+      return `${brandKey}|${rawModel}`;
+
+    };
+
+    const richness=product=>{
+
+      const galleryCount=
+        Array.isArray(product?.gallery)
+          ?product.gallery.length
+          :0;
+
+      const imageCount=
+        Array.isArray(product?.images)
+          ?product.images.length
+          :0;
+
+      const videoCount=
+        Array.isArray(product?.deviceVideos)
+          ?product.deviceVideos.length
+          :Array.isArray(product?.videos)
+            ?product.videos.length
+            :0;
+
+      const specCount=
+        Array.isArray(product?.specGroups)
+          ?product.specGroups.length
+          :0;
+
+      return (
+        galleryCount*10+
+        imageCount*10+
+        videoCount*20+
+        specCount*5
+      );
+
+    };
+
+    result.forEach(product=>{
+
+      const key=modelKey(product);
+      const existing=modelMap.get(key);
+
+      if(
+        !existing ||
+        richness(product)>richness(existing)
+      ){
+        modelMap.set(key,product);
+      }
+
+    });
+
+    result=[...modelMap.values()];
+
+
+
     if(sort==='price-low'){
 
       result=[...result].sort(
