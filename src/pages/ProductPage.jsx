@@ -1,4 +1,4 @@
-import React,{useEffect,useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 
 
 
@@ -167,6 +167,22 @@ const unique=(values)=>
 
 
   [...new Set(values.filter(Boolean))];
+
+
+
+const stableSuggestionScore=value=>{
+
+  let hash=2166136261;
+
+  const text=String(value||'');
+
+  for(let i=0;i<text.length;i+=1){
+    hash^=text.charCodeAt(i);
+    hash=Math.imul(hash,16777619);
+  }
+
+  return hash>>>0;
+};
 
 
 
@@ -446,465 +462,337 @@ const gradeImages={
 
 
 
-function ProductGallery({product,saved,onWishlist}){
-
-
-
-
-
-
+function ProductGallery({product,saved,onWishlist,watchVideo}){
 
   const gallery=getGallery(product);
 
-
-
-
-
-
-
   const [active,setActive]=useState(0);
+  const [isMobile,setIsMobile]=useState(
+    ()=>typeof window!=='undefined'
+      ?window.innerWidth<=820
+      :false
+  );
 
-
-
-
-
-
+  const pointerStartX=useRef(null);
+  const thumbRefs=useRef([]);
 
   useEffect(()=>{
 
-
-
     setActive(0);
-
-
 
   },[product?.id]);
 
+  useEffect(()=>{
 
+    if(typeof window==='undefined'){
+      return undefined;
+    }
 
+    const syncMobile=()=>{
+      setIsMobile(window.innerWidth<=820);
+    };
 
+    syncMobile();
 
+    window.addEventListener('resize',syncMobile);
 
+    return ()=>{
+      window.removeEventListener('resize',syncMobile);
+    };
+
+  },[]);
+
+  useEffect(()=>{
+
+    if(
+      !isMobile ||
+      gallery.length<=1
+    ){
+      return undefined;
+    }
+
+    const timer=window.setInterval(()=>{
+
+      setActive(index=>
+        index>=gallery.length-1
+          ?0
+          :index+1
+      );
+
+    },3500);
+
+    return ()=>{
+      window.clearInterval(timer);
+    };
+
+  },[isMobile,product?.id,gallery.length]);
+
+  useEffect(()=>{
+
+    if(!isMobile){
+      return;
+    }
+
+    thumbRefs.current[active]?.scrollIntoView({
+      behavior:'smooth',
+      block:'nearest',
+      inline:'center'
+    });
+
+  },[active,isMobile]);
 
   const current=
-
-
-
     gallery[active]||
-
-
-
     product?.image;
-
-
-
-
-
-
 
   const prev=()=>{
 
-
-
     setActive(index=>
-
-
-
       index<=0
-
-
-
         ?gallery.length-1
-
-
-
         :index-1
-
-
-
     );
 
-
-
   };
-
-
-
-
-
-
 
   const next=()=>{
 
-
-
     setActive(index=>
-
-
-
       index>=gallery.length-1
-
-
-
         ?0
-
-
-
         :index+1
-
-
-
     );
-
-
 
   };
 
+  const onPointerDown=event=>{
 
+    if(!isMobile){
+      return;
+    }
 
+    pointerStartX.current=
+      event.clientX;
 
+    try{
+      event.currentTarget.setPointerCapture(
+        event.pointerId
+      );
+    }catch{
+      /* no-op */
+    }
 
+  };
 
+  const onPointerUp=event=>{
+
+    if(
+      !isMobile ||
+      pointerStartX.current===null ||
+      gallery.length<=1
+    ){
+      pointerStartX.current=null;
+      return;
+    }
+
+    const distance=
+      event.clientX-pointerStartX.current;
+
+    pointerStartX.current=null;
+
+    if(Math.abs(distance)<35){
+      return;
+    }
+
+    if(distance<0){
+      next();
+    }else{
+      prev();
+    }
+
+  };
+
+  const onPointerCancel=()=>{
+
+    pointerStartX.current=null;
+
+  };
 
   return (
 
-
-
     <div className="pdp-media">
 
-
-
-
-
-
-
-      <div className="pdp-thumb-column">
-
-
-
-
-
-
+      <div
+        className="pdp-thumb-column"
+        style={
+          isMobile
+            ?{
+              width:'100%',
+              display:'flex',
+              flexDirection:'row',
+              gap:'8px',
+              overflowX:'auto',
+              overflowY:'hidden',
+              scrollBehavior:'smooth',
+              WebkitOverflowScrolling:'touch'
+            }
+            :undefined
+        }
+      >
 
         {gallery.map((image,index)=>(
 
-
-
           <button
-
-
-
             type="button"
-
-
-
             className={
-
-
-
               `pdp-thumb ${
-
-
-
                 active===index?'active':''
-
-
-
               }`
-
-
-
             }
-
-
-
             key={`${image}-${index}`}
-
-
-
             onClick={()=>setActive(index)}
-
-
-
+            ref={node=>{
+              thumbRefs.current[index]=node;
+            }}
+            style={
+              isMobile
+                ?{
+                  flex:'0 0 54px'
+                }
+                :undefined
+            }
           >
 
-
-
             <img
-
-
-
               src={image}
-
-
-
               alt={`${product.name} ${index+1}`}
-
-
-
             />
-
-
 
           </button>
 
-
-
         ))}
 
+        {watchVideo?.url&&(
 
+          <a
+            className="pdp-watch-buy-thumb"
+            href={watchVideo.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Watch ${product.model||product.name} video`}
+            style={
+              isMobile
+                ?{
+                  flexShrink:0
+                }
+                :undefined
+            }
+          >
+            <span className="pdp-watch-buy-play">▶</span>
+            <span>
+              Dekho Aur
+              <br/>
+              Kharido
+            </span>
+          </a>
 
-
-
-
+        )}
 
       </div>
 
-
-
-
-
-
-
-
-
-
-
-      <div className="pdp-main-image">
-
-
-
-
-
-
+      <div
+        className="pdp-main-image"
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerCancel}
+        style={
+          isMobile
+            ?{
+              overflow:'hidden',
+              touchAction:'pan-y',
+              userSelect:'none',
+              WebkitUserSelect:'none'
+            }
+            :undefined
+        }
+      >
 
         <button
-
-
-
           type="button"
-
-
-
           className={
-
-
-
             `pdp-heart ${
-
-
-
               saved?'active':''
-
-
-
             }`
-
-
-
           }
-
-
-
           onClick={onWishlist}
-
-
-
           aria-label="Wishlist"
-
-
-
         >
 
-
-
           <Heart
-
-
-
             size={21}
-
-
-
             fill={saved?'currentColor':'none'}
-
-
-
           />
-
-
 
         </button>
 
-
-
-
-
-
-
         {current&&(
 
-
-
           <img
-
-
-
+            key={current}
             src={current}
-
-
-
             alt={product.name}
-
-
-
+            draggable="false"
+            style={
+              isMobile
+                ?{
+                  pointerEvents:'none',
+                  WebkitUserDrag:'none'
+                }
+                :undefined
+            }
           />
-
-
 
         )}
 
-
-
-
-
-
-
-        {gallery.length>1&&(
-
-
+        {!isMobile&&gallery.length>1&&(
 
           <>
 
-
-
             <button
-
-
-
               type="button"
-
-
-
               className="pdp-image-arrow left"
-
-
-
               onClick={prev}
-
-
-
               aria-label="Previous image"
-
-
-
             >
-
-
-
               <ChevronLeft size={19}/>
-
-
-
             </button>
-
-
-
-
-
-
 
             <button
-
-
-
               type="button"
-
-
-
               className="pdp-image-arrow right"
-
-
-
               onClick={next}
-
-
-
               aria-label="Next image"
-
-
-
             >
-
-
-
               <ChevronRight size={19}/>
-
-
-
             </button>
-
-
 
           </>
 
-
-
         )}
 
-
-
-
-
-
-
         <div className="pdp-image-note">
-
-
-
           <span>32 Point Quality Check</span>
-
-
-
           <span>15 Days Refund*</span>
-
-
-
           <span>06 Months Warranty</span>
-
-
-
         </div>
-
-
-
-
-
-
 
       </div>
 
-
-
-
-
-
-
     </div>
-
-
 
   );
 
-
-
 }
-
-
-
-
-
-
 
 function ChoiceTabs({
 
@@ -1695,6 +1583,12 @@ export default function ProductPage(){
 
 
   const [selectedColor,setSelectedColor]=useState('');
+
+
+
+  const [suggestionSeed]=useState(
+    ()=>`${Date.now()}-${Math.random()}`
+  );
 
 
 
@@ -3468,43 +3362,43 @@ const price=money(product.price);
 
 
 
-  const related=
+  const related=(()=>{
 
+    const seenModels=new Set();
 
-
-    source
-
-
-
+    const candidates=source
       .filter(item=>
-
-
-
-        String(item.id)!==
-
-
-
-        String(product.id)
-
-
-
-      )
-
-
-
-      .filter(item=>
-
-
-
+        String(item.id)!==String(product.id) &&
         item.category===product.category
-
-
-
       )
+      .filter(item=>{
+        const modelKey=String(
+          item.model||item.name||item.id
+        )
+          .replace(/\s*-\s*Refurbished\s*$/i,'')
+          .trim()
+          .toLowerCase();
 
+        if(!modelKey||seenModels.has(modelKey)){
+          return false;
+        }
 
+        seenModels.add(modelKey);
+        return true;
+      });
 
-      .slice(0,5);
+    return candidates
+      .map(item=>({
+        item,
+        score:stableSuggestionScore(
+          `${suggestionSeed}:${product.id}:${item.id}`
+        )
+      }))
+      .sort((a,b)=>a.score-b.score)
+      .slice(0,5)
+      .map(entry=>entry.item);
+
+  })();
 
 
 
@@ -3702,6 +3596,10 @@ const price=money(product.price);
 
 
 
+                watchVideo={profile.deviceVideos?.[0]||null}
+
+
+
               />
 
 
@@ -3888,6 +3786,9 @@ const price=money(product.price);
                       .includes(
                         String(product.condition||'')
                           .toLowerCase()
+                      ) ||
+                      /refurbished/i.test(
+                        String(product.model||product.name||'')
                       )
                       ?''
                       :' - Refurbished'
