@@ -474,7 +474,6 @@ function ProductGallery({product,saved,onWishlist,watchVideo}){
   );
 
   const pointerStartX=useRef(null);
-  const thumbRefs=useRef([]);
 
   useEffect(()=>{
 
@@ -501,45 +500,6 @@ function ProductGallery({product,saved,onWishlist,watchVideo}){
     };
 
   },[]);
-
-  useEffect(()=>{
-
-    if(
-      !isMobile ||
-      gallery.length<=1
-    ){
-      return undefined;
-    }
-
-    const timer=window.setInterval(()=>{
-
-      setActive(index=>
-        index>=gallery.length-1
-          ?0
-          :index+1
-      );
-
-    },3500);
-
-    return ()=>{
-      window.clearInterval(timer);
-    };
-
-  },[isMobile,product?.id,gallery.length]);
-
-  useEffect(()=>{
-
-    if(!isMobile){
-      return;
-    }
-
-    thumbRefs.current[active]?.scrollIntoView({
-      behavior:'smooth',
-      block:'nearest',
-      inline:'center'
-    });
-
-  },[active,isMobile]);
 
   const current=
     gallery[active]||
@@ -651,9 +611,6 @@ function ProductGallery({product,saved,onWishlist,watchVideo}){
             }
             key={`${image}-${index}`}
             onClick={()=>setActive(index)}
-            ref={node=>{
-              thumbRefs.current[index]=node;
-            }}
             style={
               isMobile
                 ?{
