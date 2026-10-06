@@ -629,32 +629,6 @@ function ProductGallery({product,saved,onWishlist,watchVideo}){
 
         ))}
 
-        {watchVideo?.url&&(
-
-          <a
-            className="pdp-watch-buy-thumb"
-            href={watchVideo.url}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Watch ${product.model||product.name} video`}
-            style={
-              isMobile
-                ?{
-                  flexShrink:0
-                }
-                :undefined
-            }
-          >
-            <span className="pdp-watch-buy-play">▶</span>
-            <span>
-              Dekho Aur
-              <br/>
-              Kharido
-            </span>
-          </a>
-
-        )}
-
       </div>
 
       <div
@@ -708,6 +682,35 @@ function ProductGallery({product,saved,onWishlist,watchVideo}){
                 :undefined
             }
           />
+
+        )}
+
+        {watchVideo?.url&&(
+
+          <a
+            className="pdp-watch-buy-banner"
+            href={watchVideo.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Watch ${product.model||product.name} video`}
+          >
+            <span className="pdp-watch-buy-badge">
+              <span>Dekho Aur</span>
+              <strong>Khareedo</strong>
+            </span>
+
+            <span className="pdp-watch-buy-copy">
+              <strong>See the video of this device</strong>
+              <small>Jo dekhoge wahi milega!</small>
+            </span>
+
+            <span
+              className="pdp-watch-buy-chevron"
+              aria-hidden="true"
+            >
+              ›
+            </span>
+          </a>
 
         )}
 
