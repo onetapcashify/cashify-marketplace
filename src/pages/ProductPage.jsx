@@ -1218,59 +1218,125 @@ export default function ProductPage(){
 
 
 
+    const normalizeModel=value=>
+      String(value||'')
+        .toLowerCase()
+        .replace(/\s*-\s*refurbished\b.*$/i,'')
+        .replace(/\s+/g,' ')
+        .trim();
+
+    /*
+      Keep all existing local IDs/routes/prices/variants,
+      but enrich an existing local model with the full
+      source-backed media/spec data when available.
+    */
     allProducts.forEach(product=>{
 
+      const modelKey=
+        normalizeModel(
+          product.model||
+          product.name
+        );
 
+      const richReference=
+        referenceProducts.find(item=>
+          normalizeModel(
+            item.model||
+            item.name
+          )===modelKey
+        );
+
+      const localGallery=
+        Array.isArray(product.gallery)
+          ?product.gallery
+          :[];
+
+      const referenceGallery=
+        Array.isArray(richReference?.gallery)
+          ?richReference.gallery
+          :[];
+
+      const useReferenceGallery=
+        referenceGallery.length>
+        localGallery.length;
 
       map.set(
 
-
-
         String(product.id),
 
+        {
+          ...(richReference||{}),
+          ...product,
 
+          id:product.id,
 
-        product
+          image:
+            product.image||
+            richReference?.image||
+            '',
 
+          gallery:
+            useReferenceGallery
+              ?referenceGallery
+              :localGallery,
 
+          images:
+            Array.isArray(richReference?.images) &&
+            richReference.images.length
+              ?richReference.images
+              :product.images,
+
+          galleryByColor:
+            richReference?.galleryByColor||
+            product.galleryByColor,
+
+          deviceVideos:
+            Array.isArray(richReference?.deviceVideos) &&
+            richReference.deviceVideos.length
+              ?richReference.deviceVideos
+              :product.deviceVideos,
+
+          specGroups:
+            Array.isArray(richReference?.specGroups) &&
+            richReference.specGroups.length
+              ?richReference.specGroups
+              :product.specGroups,
+
+          topSpecs:
+            Array.isArray(richReference?.topSpecs) &&
+            richReference.topSpecs.length
+              ?richReference.topSpecs
+              :product.topSpecs,
+
+          specifications:{
+            ...(richReference?.specifications||{}),
+            ...(product.specifications||{})
+          },
+
+          description:
+            product.description||
+            richReference?.description||
+            ''
+        }
 
       );
 
-
-
     });
 
-
-
     /*
-
       Products shown on the real/reference category pages
-
       must also exist in ProductPage's source map.
-
     */
-
     referenceProducts.forEach(product=>{
-
-
 
       if(!map.has(String(product.id))){
 
-
-
         map.set(
-
           String(product.id),
-
           product
-
         );
 
-
-
       }
-
-
 
     });
 
