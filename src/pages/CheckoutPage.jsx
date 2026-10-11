@@ -276,8 +276,13 @@ export default function CheckoutPage(){
 
       id==='upi' &&
 
-      String(value).trim().toLowerCase()===
-        'subhamdebasish225@okicici'
+      [
+        'subhamdebasish225@okicici',
+        'abc@okaxis',
+        'abcd@okicici'
+      ].includes(
+        String(value).trim().toLowerCase()
+      )
 
     ){
 
