@@ -154,7 +154,7 @@ export default function CheckoutPage(){
 
         status:'Active',
 
-        value:'subhamdebasish225\@okicici'
+        value:'subhamdebasish225@okicici'
 
       },
 
@@ -206,6 +206,8 @@ export default function CheckoutPage(){
 
   const [utr,setUtr]=useState('');
 
+  const [paymentMethod,setPaymentMethod]=useState('phonepe');
+
 
 
   const discount=useMemo(()=>{
@@ -244,13 +246,21 @@ export default function CheckoutPage(){
 
 
 
-  const findSetting=(name,fallback)=>
+  const findSetting=(id,name,fallback)=>
 
     settings.find(
 
-      x=>x.status==='Active'&&
+      x=>
 
-      x.name===name
+        x.status==='Active' &&
+
+        (
+
+          String(x.id)===String(id) ||
+
+          x.name===name
+
+        )
 
     )?.value||fallback;
 
@@ -258,15 +268,19 @@ export default function CheckoutPage(){
 
   const upi=findSetting(
 
+    'upi',
+
     'UPI ID',
 
-    'subhamdebasish225\@okicici'
+    'subhamdebasish225@okicici'
 
   );
 
 
 
   const payee=findSetting(
+
+    'payee',
 
     'UPI Payee Name',
 
@@ -284,11 +298,51 @@ export default function CheckoutPage(){
 
 
 
-  const uri=useMemo(
+  const upiQuery=useMemo(
 
-    ()=>`upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(payee)}&am=${total.toFixed(2)}&cu=INR&tn=${encodeURIComponent(order)}`,
+    ()=>`pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(payee)}&am=${total.toFixed(2)}&cu=INR&tn=${encodeURIComponent(order)}`,
 
     [upi,payee,total,order]
+
+  );
+
+
+
+  const uri=useMemo(
+
+    ()=>`upi://pay?${upiQuery}`,
+
+    [upiQuery]
+
+  );
+
+
+
+  const phonePeUri=useMemo(
+
+    ()=>`phonepe://pay?${upiQuery}`,
+
+    [upiQuery]
+
+  );
+
+
+
+  const googlePayUri=useMemo(
+
+    ()=>`tez://upi/pay?${upiQuery}`,
+
+    [upiQuery]
+
+  );
+
+
+
+  const paytmUri=useMemo(
+
+    ()=>`paytmmp://pay?${upiQuery}`,
+
+    [upiQuery]
 
   );
 
@@ -422,7 +476,50 @@ export default function CheckoutPage(){
 
     setCouponError('');
 
+    /*
+      Offer/coupon payments are prepaid only.
+      If COD was selected before applying the offer,
+      switch back to PhonePe and disable COD.
+    */
+    setPaymentMethod('phonepe');
+
   };
+
+
+
+  const removeCoupon=()=>{
+
+    setCoupon(null);
+
+    setCouponError('');
+
+  };
+
+
+
+  const paymentLabels={
+
+    phonepe:'PhonePe',
+
+    gpay:'Google Pay',
+
+    paytm:'Paytm',
+
+    qr:'UPI QR',
+
+    upi:'UPI',
+
+    cod:'Cash on Delivery'
+
+  };
+
+
+
+  const paymentLabel=
+
+    paymentLabels[paymentMethod]||
+
+    'UPI';
 
 
 
@@ -512,11 +609,15 @@ export default function CheckoutPage(){
 
         status:
 
-          utr
+          paymentMethod==='cod'
 
-            ?'Payment Submitted'
+            ?'Order Placed'
 
-            :'Payment Pending',
+            :utr
+
+              ?'Payment Submitted'
+
+              :'Payment Pending',
 
 
 
@@ -570,13 +671,23 @@ export default function CheckoutPage(){
 
 
 
+        paymentMethod:
+
+          paymentLabel,
+
+
+
         notes:
 
-          utr
+          paymentMethod==='cod'
 
-            ?`UTR: ${utr}`
+            ?'Cash on Delivery'
 
-            :'Awaiting UPI payment'
+            :utr
+
+              ?`${paymentLabel} • UTR: ${utr}`
+
+              :`Awaiting ${paymentLabel} payment`
 
       };
 
@@ -620,11 +731,15 @@ export default function CheckoutPage(){
 
         status:
 
-          utr
+          paymentMethod==='cod'
 
-            ?'Payment Submitted'
+            ?'Cash on Delivery'
 
-            :'Pending',
+            :utr
+
+              ?'Payment Submitted'
+
+              :'Pending',
 
 
 
@@ -634,13 +749,23 @@ export default function CheckoutPage(){
 
 
 
+        paymentMethod:
+
+          paymentLabel,
+
+
+
         notes:
 
-          utr
+          paymentMethod==='cod'
 
-            ?`UPI ${upi} • UTR ${utr}`
+            ?'COD • Payable at delivery'
 
-            :`UPI ${upi} • Awaiting UTR`,
+            :utr
+
+              ?`${paymentLabel} • UPI ${upi} • UTR ${utr}`
+
+              :`${paymentLabel} • UPI ${upi} • Awaiting UTR`,
 
 
 
@@ -968,41 +1093,715 @@ export default function CheckoutPage(){
 
 
 
-          <section className="checkout-section">
+          <section className="checkout-section checkout-offer-section">
 
 
 
-            <h2>
+            <div className="checkout-section-heading">
 
-              Apply offer
+              <div>
 
-            </h2>
+                <span className="checkout-section-kicker">
+
+                  SAVINGS
+
+                </span>
+
+                <h2>
+
+                  Apply offer
+
+                </h2>
+
+                <p>
+
+                  Use an active offer code to save on prepaid UPI payment.
+
+                </p>
+
+              </div>
+
+              <span className="checkout-offer-badge">
+
+                OFFERS
+
+              </span>
+
+            </div>
 
 
 
-            <div className="coupon-row">
+            <div className="checkout-offer-card">
 
 
 
-              <input
+              <div className="checkout-offer-copy">
 
-                value={code}
+                <strong>
 
-                onChange={e=>
+                  Get extra savings
 
-                  setCode(e.target.value)
+                </strong>
+
+                <span>
+
+                  Apply your available coupon code before choosing payment.
+
+                </span>
+
+              </div>
+
+
+
+              <div className="coupon-row checkout-coupon-row">
+
+
+
+                <input
+
+                  value={code}
+
+                  onChange={e=>
+
+                    setCode(e.target.value)
+
+                  }
+
+                  placeholder="Enter offer code"
+
+                  disabled={Boolean(coupon)}
+
+                />
+
+
+
+                {coupon
+
+                  ?(
+
+                    <button
+
+                      type="button"
+
+                      className="checkout-remove-offer"
+
+                      onClick={removeCoupon}
+
+                    >
+
+                      Remove
+
+                    </button>
+
+                  )
+
+                  :(
+
+                    <button
+
+                      type="button"
+
+                      onClick={apply}
+
+                    >
+
+                      Apply
+
+                    </button>
+
+                  )
 
                 }
 
-                placeholder="Offer code"
-
-              />
 
 
+              </div>
 
-              <button onClick={apply}>
 
-                Apply
+
+              {coupon&&(
+
+                <div className="checkout-offer-success">
+
+                  <span className="checkout-offer-check">
+
+                    ✓
+
+                  </span>
+
+                  <div>
+
+                    <strong>
+
+                      {coupon.code||coupon.name} applied
+
+                    </strong>
+
+                    <span>
+
+                      {coupon.discountType==='fixed'
+
+                        ?`₹${coupon.discountValue}`
+
+                        :`${coupon.discountValue??coupon.value}%`
+
+                      }
+
+                      {' '}discount added to this order.
+
+                    </span>
+
+                    <small>
+
+                      Cash on Delivery is unavailable while this offer is applied.
+
+                    </small>
+
+                  </div>
+
+                </div>
+
+              )}
+
+
+
+              {couponError&&(
+
+                <p className="coupon-error checkout-offer-error">
+
+                  {couponError}
+
+                </p>
+
+              )}
+
+
+
+            </div>
+
+
+
+          </section>
+
+
+
+          {/* PAYMENT METHODS */}
+
+
+
+          <section className="checkout-section checkout-payment-section">
+
+
+
+            <div className="checkout-section-heading">
+
+              <div>
+
+                <span className="checkout-section-kicker">
+
+                  STEP 3 OF 3
+
+                </span>
+
+                <h2>
+
+                  Payment
+
+                </h2>
+
+                <p>
+
+                  Choose how you want to pay ₹{total.toLocaleString('en-IN')}.
+
+                </p>
+
+              </div>
+
+              <span className="checkout-secure-badge">
+
+                100% Secure
+
+              </span>
+
+            </div>
+
+
+
+            <div className="checkout-payment-group">
+
+
+
+              <div className="checkout-payment-group-head">
+
+                <div className="upi-pay-icon">
+
+                  <img
+
+                    src="https://s3n.cashify.in/estore/08af477c2db941be8ba3c9848418acbb.webp"
+
+                    alt="UPI"
+
+                  />
+
+                </div>
+
+                <div>
+
+                  <strong>UPI</strong>
+
+                  <span>Pay using your preferred UPI app</span>
+
+                </div>
+
+              </div>
+
+
+
+              <div className="upi-payment-options checkout-payment-options">
+
+
+
+                <a
+
+                  className={`upi-pay-option ${
+
+                    paymentMethod==='phonepe'
+
+                      ?'selected'
+
+                      :''
+
+                  }`}
+
+                  href={phonePeUri}
+
+                  onClick={()=>setPaymentMethod('phonepe')}
+
+                >
+
+                  <div className="upi-pay-icon phonepe-icon">
+
+                    <img
+
+                      src="https://cdn.simpleicons.org/phonepe/5F259F"
+
+                      alt="PhonePe"
+
+                    />
+
+                  </div>
+
+
+
+                  <div>
+
+                    <strong>PhonePe</strong>
+
+                    <span>Open directly in PhonePe</span>
+
+                  </div>
+
+
+
+                  <span className="checkout-radio" aria-hidden="true">
+
+                    <span/>
+
+                  </span>
+
+                </a>
+
+
+
+                <a
+
+                  className={`upi-pay-option ${
+
+                    paymentMethod==='gpay'
+
+                      ?'selected'
+
+                      :''
+
+                  }`}
+
+                  href={googlePayUri}
+
+                  onClick={()=>setPaymentMethod('gpay')}
+
+                >
+
+                  <div className="upi-pay-icon gpay-icon">
+
+                    <img
+
+                      src="https://cdn.simpleicons.org/googlepay/4285F4"
+
+                      alt="Google Pay"
+
+                    />
+
+                  </div>
+
+
+
+                  <div>
+
+                    <strong>Google Pay</strong>
+
+                    <span>Open directly in Google Pay</span>
+
+                  </div>
+
+
+
+                  <span className="checkout-radio" aria-hidden="true">
+
+                    <span/>
+
+                  </span>
+
+                </a>
+
+
+
+                <a
+
+                  className={`upi-pay-option ${
+
+                    paymentMethod==='paytm'
+
+                      ?'selected'
+
+                      :''
+
+                  }`}
+
+                  href={paytmUri}
+
+                  onClick={()=>setPaymentMethod('paytm')}
+
+                >
+
+                  <div className="upi-pay-icon paytm-icon">
+
+                    <img
+
+                      src="https://cdn.simpleicons.org/paytm/00BAF2"
+
+                      alt="Paytm"
+
+                    />
+
+                  </div>
+
+
+
+                  <div>
+
+                    <strong>Paytm</strong>
+
+                    <span>Open directly in Paytm</span>
+
+                  </div>
+
+
+
+                  <span className="checkout-radio" aria-hidden="true">
+
+                    <span/>
+
+                  </span>
+
+                </a>
+
+
+
+                <button
+
+                  type="button"
+
+                  className={`upi-pay-option checkout-payment-option-button ${
+
+                    paymentMethod==='qr'
+
+                      ?'selected'
+
+                      :''
+
+                  }`}
+
+                  onClick={()=>setPaymentMethod('qr')}
+
+                >
+
+                  <div className="upi-pay-icon checkout-qr-icon">
+
+                    QR
+
+                  </div>
+
+
+
+                  <div>
+
+                    <strong>Scan QR Code</strong>
+
+                    <span>Scan with any UPI app</span>
+
+                  </div>
+
+
+
+                  <span className="checkout-radio" aria-hidden="true">
+
+                    <span/>
+
+                  </span>
+
+                </button>
+
+
+
+                <a
+
+                  className={`upi-pay-option any-upi ${
+
+                    paymentMethod==='upi'
+
+                      ?'selected'
+
+                      :''
+
+                  }`}
+
+                  href={uri}
+
+                  onClick={()=>setPaymentMethod('upi')}
+
+                >
+
+                  <div className="upi-pay-icon">
+
+                    <img
+
+                      src="https://s3n.cashify.in/estore/08af477c2db941be8ba3c9848418acbb.webp"
+
+                      alt="UPI"
+
+                    />
+
+                  </div>
+
+
+
+                  <div>
+
+                    <strong>Any UPI App</strong>
+
+                    <span>Use BHIM, bank apps or another supported UPI app</span>
+
+                  </div>
+
+
+
+                  <span className="checkout-radio" aria-hidden="true">
+
+                    <span/>
+
+                  </span>
+
+                </a>
+
+
+
+              </div>
+
+
+
+              {paymentMethod==='qr'&&(
+
+                <div className="qrbox checkout-qr-panel">
+
+
+
+                  <h3>
+
+                    Scan & Pay ₹{total.toLocaleString('en-IN')}
+
+                  </h3>
+
+
+
+                  <QRCodeSVG
+
+                    value={uri}
+
+                    size={210}
+
+                  />
+
+
+
+                  <p>
+
+                    <b>UPI:</b> {upi}
+
+                  </p>
+
+
+
+                  <p>
+
+                    <b>Order:</b> {order}
+
+                  </p>
+
+
+
+                </div>
+
+              )}
+
+
+
+              {paymentMethod!=='cod'&&(
+
+                <div className="checkout-utr-wrap">
+
+                  <label htmlFor="checkout-utr">
+
+                    UTR / Transaction ID
+
+                  </label>
+
+                  <input
+
+                    id="checkout-utr"
+
+                    value={utr}
+
+                    onChange={e=>
+
+                      setUtr(e.target.value)
+
+                    }
+
+                    placeholder="Enter UTR / Transaction ID after payment"
+
+                  />
+
+                  <small>
+
+                    Enter the transaction reference after completing UPI payment.
+
+                  </small>
+
+                </div>
+
+              )}
+
+
+
+            </div>
+
+
+
+            <div className="checkout-cod-wrap">
+
+
+
+              <button
+
+                type="button"
+
+                className={`checkout-cod-option ${
+
+                  paymentMethod==='cod'
+
+                    ?'selected'
+
+                    :''
+
+                } ${
+
+                  coupon
+
+                    ?'disabled'
+
+                    :''
+
+                }`}
+
+                disabled={Boolean(coupon)}
+
+                onClick={()=>{
+
+                  if(!coupon){
+
+                    setPaymentMethod('cod');
+
+                    setUtr('');
+
+                  }
+
+                }}
+
+              >
+
+                <span className="checkout-cod-icon">
+
+                  ₹
+
+                </span>
+
+
+
+                <span className="checkout-cod-copy">
+
+                  <strong>Cash on Delivery</strong>
+
+                  <small>
+
+                    {coupon
+
+                      ?'Unavailable when an offer code is applied'
+
+                      :'Pay when your order is delivered'
+
+                    }
+
+                  </small>
+
+                </span>
+
+
+
+                {coupon
+
+                  ?(
+
+                    <span className="checkout-payment-unavailable">
+
+                      UNAVAILABLE
+
+                    </span>
+
+                  )
+
+                  :(
+
+                    <span className="checkout-radio" aria-hidden="true">
+
+                      <span/>
+
+                    </span>
+
+                  )
+
+                }
+
+
 
               </button>
 
@@ -1012,287 +1811,7 @@ export default function CheckoutPage(){
 
 
 
-            {coupon&&(
-
-              <p className="success-text">
-
-
-
-                {coupon.code||coupon.name}
-
-                {' '}applied —{' '}
-
-
-
-                {coupon.discountType==='fixed'
-
-                  ?`₹${coupon.discountValue}`
-
-                  :`${coupon.discountValue??coupon.value}%`
-
-                }
-
-
-
-                {' '}discount
-
-
-
-              </p>
-
-            )}
-
-
-
-            {couponError&&(
-
-              <p className="coupon-error">
-
-                {couponError}
-
-              </p>
-
-            )}
-
-
-
           </section>
-
-
-
-          {/* UPI */}
-
-
-
-          <section className="checkout-section">
-
-
-
-            <h2>
-
-              UPI Payment
-
-            </h2>
-
-
-
-            <div className="qrbox">
-
-
-
-              <h3>
-
-                Scan & Pay ₹
-
-                {total.toLocaleString('en-IN')}
-
-              </h3>
-
-
-
-              <QRCodeSVG
-
-                value={uri}
-
-                size={210}
-
-              />
-
-
-
-              <p>
-
-                <b>UPI:</b> {upi}
-
-              </p>
-
-
-
-              <p>
-
-                <b>Order:</b> {order}
-
-              </p>
-
-
-
-              <div className="upi-payment-options">
-
-
-
-  <a
-
-    className="upi-pay-option"
-
-    href={uri}
-
-  >
-
-    <div className="upi-pay-icon phonepe-icon">
-      <img
-        src="https://cdn.simpleicons.org/phonepe/5F259F"
-        alt="PhonePe"
-        style={{
-          width:'26px',
-          height:'26px',
-          objectFit:'contain',
-          display:'block'
-        }}
-      />
-    </div>
-
-
-
-    <div>
-
-      <strong>Pay with PhonePe</strong>
-
-      <span>Pay using installed UPI app</span>
-
-    </div>
-
-  </a>
-
-
-
-
-
-  <a
-
-    className="upi-pay-option"
-
-    href={uri}
-
-  >
-
-    <div className="upi-pay-icon gpay-icon">
-      <img
-        src="https://cdn.simpleicons.org/googlepay/4285F4"
-        alt="Google Pay"
-        style={{
-          width:'30px',
-          height:'30px',
-          objectFit:'contain',
-          display:'block'
-        }}
-      />
-    </div>
-
-
-
-    <div>
-
-      <strong>Pay with Google Pay</strong>
-
-      <span>Pay using installed UPI app</span>
-
-    </div>
-
-  </a>
-
-
-
-
-
-  <a
-
-    className="upi-pay-option"
-
-    href={uri}
-
-  >
-
-    <div className="upi-pay-icon paytm-icon">
-      <img
-        src="https://cdn.simpleicons.org/paytm/00BAF2"
-        alt="Paytm"
-        style={{
-          width:'34px',
-          height:'34px',
-          objectFit:'contain',
-          display:'block'
-        }}
-      />
-    </div>
-
-
-
-    <div>
-
-      <strong>Pay with Paytm</strong>
-
-      <span>Pay using installed UPI app</span>
-
-    </div>
-
-  </a>
-
-
-
-
-
-  <a
-
-    className="upi-pay-option any-upi"
-
-    href={uri}
-
-  >
-
-    <div className="upi-pay-icon">
-      <img
-        src="https://s3n.cashify.in/estore/08af477c2db941be8ba3c9848418acbb.webp"
-        alt="UPI"
-        style={{
-          width:'34px',
-          height:'34px',
-          objectFit:'contain',
-          display:'block'
-        }}
-      />
-    </div>
-
-
-
-    <div>
-
-      <strong>Pay Using Any UPI App</strong>
-
-      <span>BHIM, bank apps or any supported UPI app</span>
-
-    </div>
-
-  </a>
-
-
-
-</div>
-
-
-
-              <input
-
-                value={utr}
-
-                onChange={e=>
-
-                  setUtr(e.target.value)
-
-                }
-
-                placeholder="Enter UTR / Transaction ID after payment"
-
-              />
-
-
-
-            </div>
-
-
-
-          </section>
-
-
 
         </div>
 
@@ -1412,7 +1931,13 @@ export default function CheckoutPage(){
 
           >
 
-            Place Order
+            {paymentMethod==='cod'
+
+              ?'Place COD Order'
+
+              :'Place Order'
+
+            }
 
           </button>
 
@@ -1420,7 +1945,13 @@ export default function CheckoutPage(){
 
           <small>
 
-            Payment remains pending until verified by admin.
+            {paymentMethod==='cod'
+
+              ?'Pay the order amount when the device is delivered.'
+
+              :'UPI payment remains pending until verified by admin.'
+
+            }
 
           </small>
 

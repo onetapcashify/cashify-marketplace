@@ -6943,3 +6943,497 @@ body{
   }
 
 }
+/* =========================================================
+   CHECKOUT PAYMENT UI — OFFER + UPI APP + COD
+   Append at the VERY END of src/styles.css
+   Uses existing Cashify teal palette.
+========================================================= */
+
+.checkout-section-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+
+.checkout-section-heading h2{
+  margin:2px 0 4px;
+}
+
+.checkout-section-heading p{
+  margin:0;
+  color:#70777b;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.checkout-section-kicker{
+  display:block;
+  color:#42c8b7;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+
+.checkout-offer-badge,
+.checkout-secure-badge{
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:28px;
+  padding:5px 9px;
+  border:1px solid rgba(66,200,183,.28);
+  border-radius:7px;
+  background:#effbf9;
+  color:#158f80;
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.checkout-offer-card{
+  border:1px solid #dfe8e6;
+  border-radius:12px;
+  background:#fbfefd;
+  padding:14px;
+}
+
+.checkout-offer-copy{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  margin-bottom:12px;
+}
+
+.checkout-offer-copy strong{
+  color:#111820;
+  font-size:14px;
+}
+
+.checkout-offer-copy span{
+  color:#667075;
+  font-size:11px;
+  line-height:1.4;
+}
+
+.checkout-coupon-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:9px;
+}
+
+.checkout-coupon-row input{
+  min-width:0;
+  height:44px;
+  box-sizing:border-box;
+  border:1px solid #d9dfdf;
+  border-radius:8px;
+  background:#fff;
+}
+
+.checkout-coupon-row button{
+  min-width:88px;
+  height:44px;
+  padding:0 16px;
+  border:1px solid #42c8b7;
+  border-radius:8px;
+  background:#42c8b7;
+  color:#fff;
+  font-weight:800;
+}
+
+.checkout-coupon-row .checkout-remove-offer{
+  background:#fff;
+  color:#148f80;
+}
+
+.checkout-offer-success{
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr);
+  gap:10px;
+  margin-top:12px;
+  padding:11px 12px;
+  border:1px solid rgba(66,200,183,.35);
+  border-radius:9px;
+  background:#effbf9;
+}
+
+.checkout-offer-check{
+  width:28px;
+  height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#42c8b7;
+  color:#fff;
+  font-weight:900;
+}
+
+.checkout-offer-success>div{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.checkout-offer-success strong{
+  color:#10211f;
+  font-size:12px;
+}
+
+.checkout-offer-success span{
+  color:#3e5652;
+  font-size:10px;
+}
+
+.checkout-offer-success small{
+  margin-top:3px;
+  color:#9a6500;
+  font-size:9px;
+  font-weight:700;
+}
+
+.checkout-offer-error{
+  margin:10px 0 0;
+}
+
+.checkout-payment-group{
+  overflow:hidden;
+  border:1px solid #e0e5e5;
+  border-radius:12px;
+  background:#fff;
+}
+
+.checkout-payment-group-head{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  align-items:center;
+  gap:11px;
+  padding:13px 14px;
+  border-bottom:1px solid #edf0f0;
+  background:#fcfdfd;
+}
+
+.checkout-payment-group-head>div:last-child{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.checkout-payment-group-head strong{
+  color:#111820;
+  font-size:14px;
+}
+
+.checkout-payment-group-head span{
+  color:#737b7e;
+  font-size:10px;
+}
+
+.checkout-payment-options{
+  gap:0 !important;
+  margin:0 !important;
+}
+
+.checkout-payment-options .upi-pay-option{
+  position:relative;
+  grid-template-columns:42px minmax(0,1fr) 22px !important;
+  min-height:66px;
+  margin:0;
+  padding:10px 14px;
+  border:0 !important;
+  border-bottom:1px solid #edf0f0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:#fff !important;
+  cursor:pointer;
+}
+
+.checkout-payment-options .upi-pay-option:last-child{
+  border-bottom:0 !important;
+}
+
+.checkout-payment-options .upi-pay-option:hover{
+  background:#f8fdfc !important;
+}
+
+.checkout-payment-options .upi-pay-option.selected{
+  background:#effbf9 !important;
+}
+
+.checkout-payment-options .upi-pay-option.selected:before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+  background:#42c8b7;
+}
+
+.checkout-payment-option-button{
+  font:inherit;
+  color:inherit;
+  text-align:left;
+}
+
+.checkout-payment-options .upi-pay-icon{
+  width:38px;
+  height:38px;
+  min-width:38px;
+}
+
+.checkout-payment-options .upi-pay-icon img{
+  width:29px !important;
+  height:29px !important;
+}
+
+.checkout-qr-icon{
+  border:1px solid #dce4e3;
+  color:#148f80;
+  font-size:11px;
+  font-weight:900;
+}
+
+.checkout-radio{
+  width:18px !important;
+  height:18px !important;
+  min-width:18px;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border:1.5px solid #b7c0c0;
+  border-radius:50%;
+  background:#fff;
+}
+
+.checkout-radio>span{
+  display:block !important;
+  width:8px !important;
+  height:8px !important;
+  border-radius:50%;
+  background:transparent;
+}
+
+.selected>.checkout-radio{
+  border-color:#42c8b7;
+}
+
+.selected>.checkout-radio>span{
+  background:#42c8b7;
+}
+
+.checkout-qr-panel{
+  margin:0;
+  padding:18px 14px 16px;
+  border-top:1px solid #edf0f0;
+  border-radius:0;
+  background:#fafcfc;
+}
+
+.checkout-utr-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:14px;
+  border-top:1px solid #edf0f0;
+  background:#fff;
+}
+
+.checkout-utr-wrap label{
+  color:#202729;
+  font-size:11px;
+  font-weight:800;
+}
+
+.checkout-utr-wrap input{
+  width:100%;
+  height:43px;
+  box-sizing:border-box;
+  border:1px solid #dbe1e1;
+  border-radius:8px;
+  padding:0 12px;
+  outline:none;
+}
+
+.checkout-utr-wrap input:focus{
+  border-color:#42c8b7;
+  box-shadow:0 0 0 3px rgba(66,200,183,.1);
+}
+
+.checkout-utr-wrap small{
+  color:#7b8385;
+  font-size:9px;
+}
+
+.checkout-cod-wrap{
+  margin-top:12px;
+}
+
+.checkout-cod-option{
+  width:100%;
+  min-height:66px;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  padding:11px 14px;
+  border:1px solid #e0e5e5;
+  border-radius:12px;
+  background:#fff;
+  color:#111820;
+  text-align:left;
+  cursor:pointer;
+}
+
+.checkout-cod-option.selected{
+  border-color:#42c8b7;
+  background:#effbf9;
+  box-shadow:0 0 0 1px rgba(66,200,183,.08);
+}
+
+.checkout-cod-option.disabled{
+  cursor:not-allowed;
+  opacity:.58;
+  background:#f5f6f6;
+  filter:grayscale(.25);
+}
+
+.checkout-cod-icon{
+  width:38px;
+  height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #dce3e2;
+  border-radius:9px;
+  background:#fff;
+  color:#148f80;
+  font-size:19px;
+  font-weight:900;
+}
+
+.checkout-cod-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.checkout-cod-copy strong{
+  font-size:13px;
+}
+
+.checkout-cod-copy small{
+  color:#737b7e;
+  font-size:9.5px;
+  line-height:1.35;
+}
+
+.checkout-payment-unavailable{
+  padding:4px 6px;
+  border-radius:5px;
+  background:#e6e8e8;
+  color:#6f7577;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.03em;
+}
+
+@media(max-width:820px){
+
+  .checkout-section-heading{
+    gap:10px;
+    margin-bottom:12px;
+  }
+
+  .checkout-section-heading p{
+    font-size:11px;
+  }
+
+  .checkout-offer-card{
+    padding:12px;
+  }
+
+  .checkout-coupon-row{
+    grid-template-columns:minmax(0,1fr) 76px;
+    gap:7px;
+  }
+
+  .checkout-coupon-row button{
+    min-width:0;
+    padding:0 10px;
+  }
+
+  .checkout-payment-group-head{
+    grid-template-columns:38px minmax(0,1fr);
+    padding:11px 12px;
+  }
+
+  .checkout-payment-options .upi-pay-option{
+    grid-template-columns:38px minmax(0,1fr) 20px !important;
+    min-height:62px;
+    gap:10px !important;
+    padding:9px 12px !important;
+  }
+
+  .checkout-payment-options .upi-pay-icon{
+    width:36px;
+    height:36px;
+    min-width:36px;
+  }
+
+  .checkout-payment-options .upi-pay-icon img{
+    width:27px !important;
+    height:27px !important;
+  }
+
+  .checkout-payment-options .upi-pay-option strong{
+    font-size:12px;
+  }
+
+  .checkout-payment-options .upi-pay-option span{
+    font-size:9px;
+  }
+
+  .checkout-cod-option{
+    grid-template-columns:38px minmax(0,1fr) auto;
+    gap:10px;
+    padding:10px 12px;
+  }
+
+  .checkout-cod-icon{
+    width:36px;
+    height:36px;
+  }
+
+  .checkout-secure-badge,
+  .checkout-offer-badge{
+    font-size:8px;
+  }
+
+}
+
+@media(max-width:480px){
+
+  .checkout-section-heading{
+    align-items:flex-start;
+  }
+
+  .checkout-payment-unavailable{
+    font-size:7px;
+  }
+
+  .checkout-cod-copy strong{
+    font-size:12px;
+  }
+
+  .checkout-cod-copy small{
+    font-size:8.5px;
+  }
+
+}
