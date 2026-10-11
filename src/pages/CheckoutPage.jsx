@@ -246,23 +246,48 @@ export default function CheckoutPage(){
 
 
 
-  const findSetting=(id,name,fallback)=>
+  const findSetting=(id,name,fallback)=>{
 
-    settings.find(
+    const value=
 
-      x=>
+      settings.find(
 
-        x.status==='Active' &&
+        x=>
 
-        (
+          x.status==='Active' &&
 
-          String(x.id)===String(id) ||
+          (
 
-          x.name===name
+            String(x.id)===String(id) ||
 
-        )
+            x.name===name
 
-    )?.value||fallback;
+          )
+
+      )?.value||fallback;
+
+    /*
+      One-time compatibility for the old UPI ID.
+      Existing saved Website Settings using the old value
+      automatically use the new UPI ID, while any future
+      admin-entered UPI ID continues to work normally.
+    */
+    if(
+
+      id==='upi' &&
+
+      String(value).trim().toLowerCase()===
+        'subhamdebasish225@okicici'
+
+    ){
+
+      return 'caashify@ptyes';
+
+    }
+
+    return value;
+
+  };
 
 
 
