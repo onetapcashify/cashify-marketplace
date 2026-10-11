@@ -154,7 +154,7 @@ export default function CheckoutPage(){
 
         status:'Active',
 
-        value:'subhamdebasish225@okicici'
+        value:'caashify@ptyes'
 
       },
 
@@ -272,7 +272,7 @@ export default function CheckoutPage(){
 
     'UPI ID',
 
-    'subhamdebasish225@okicici'
+    'caashify@ptyes'
 
   );
 
