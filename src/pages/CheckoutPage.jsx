@@ -154,7 +154,7 @@ export default function CheckoutPage(){
 
         status:'Active',
 
-        value:'cashifyonetap@okicici'
+        value:'casifyonetap@okicici'
 
       },
 
@@ -288,7 +288,7 @@ export default function CheckoutPage(){
 
     ){
 
-      return 'cashifyonetap@okicici';
+      return 'casifyonetap@okicici';
 
     }
 
@@ -304,7 +304,7 @@ export default function CheckoutPage(){
 
     'UPI ID',
 
-    'cashifyonetap@okicici'
+    'casifyonetap@okicici'
 
   );
 
