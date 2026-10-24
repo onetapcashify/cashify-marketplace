@@ -154,7 +154,7 @@ export default function CheckoutPage(){
 
         status:'Active',
 
-        value:'caashify@ptyes'
+        value:'cashifyonetap@okicici'
 
       },
 
@@ -266,27 +266,29 @@ export default function CheckoutPage(){
 
       )?.value||fallback;
 
-    /*
-      One-time compatibility for the old UPI ID.
-      Existing saved Website Settings using the old value
-      automatically use the new UPI ID, while any future
-      admin-entered UPI ID continues to work normally.
-    */
     if(
 
       id==='upi' &&
 
       [
+
         'subhamdebasish225@okicici',
+
         'abc@okaxis',
-        'abcd@okicici'
+
+        'abcd@okicici',
+
+        'caashify@ptyes'
+
       ].includes(
+
         String(value).trim().toLowerCase()
+
       )
 
     ){
 
-      return 'caashify@ptyes';
+      return 'cashifyonetap@okicici';
 
     }
 
@@ -302,7 +304,7 @@ export default function CheckoutPage(){
 
     'UPI ID',
 
-    'caashify@ptyes'
+    'cashifyonetap@okicici'
 
   );
 

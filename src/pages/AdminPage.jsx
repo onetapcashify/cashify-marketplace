@@ -44,7 +44,7 @@ const seeds={
 
  Orders:load('orders',[]),
 
- 'Website Settings':[{id:'upi',name:'UPI ID',status:'Active',value:'caashify@ptyes'},{id:'phone',name:'Support Phone',status:'Active',value:'9621956411'},{id:'email',name:'Support Email',status:'Active',value:'onetapcashify\@gmail.com'},{id:'payee',name:'UPI Payee Name',status:'Active',value:'OneTap Cashify'}]
+ 'Website Settings':[{id:'upi',name:'UPI ID',status:'Active',value:'cashifyonetap@okicici'},{id:'phone',name:'Support Phone',status:'Active',value:'9621956411'},{id:'email',name:'Support Email',status:'Active',value:'onetapcashify\@gmail.com'},{id:'payee',name:'UPI Payee Name',status:'Active',value:'OneTap Cashify'}]
 
 };
 
@@ -52,7 +52,7 @@ export default function AdminPage(){
 
  const [active,setActive]=useState('Dashboard'),[rows,setRows]=useState([]),[editing,setEditing]=useState(null),[query,setQuery]=useState(''),[side,setSide]=useState(false),[version,setVersion]=useState(0); const nav=useNavigate();
 
- useEffect(()=>{if(active==='Dashboard'){setRows([]);return;}let alive=true;const migrateWebsiteSettings=async list=>{if(active!=='Website Settings')return list;let changed=false;const next=list.map(row=>{if(String(row.id)==='upi'&&['subhamdebasish225@okicici','abc@okaxis','abcd@okicici'].includes(String(row.value||'').trim().toLowerCase())){changed=true;return {...row,value:'caashify@ptyes'};}return row;});if(changed)await syncModuleRows('Website Settings',next);return next;};loadModuleRows(active,seeds[active]||[]).then(async r=>{const next=await migrateWebsiteSettings(r);if(alive)setRows(next);});const unsub=subscribeModuleRows(active,seeds[active]||[],async r=>{const next=await migrateWebsiteSettings(r);if(alive)setRows(next);});return()=>{alive=false;unsub?.()}},[active,version]);
+ useEffect(()=>{if(active==='Dashboard'){setRows([]);return;}let alive=true;const migrateWebsiteSettings=async list=>{if(active!=='Website Settings')return list;let changed=false;const next=list.map(row=>{if(String(row.id)==='upi'&&['subhamdebasish225@okicici','abc@okaxis','abcd@okicici','caashify@ptyes'].includes(String(row.value||'').trim().toLowerCase())){changed=true;return {...row,value:'cashifyonetap@okicici'};}return row;});if(changed)await syncModuleRows('Website Settings',next);return next;};loadModuleRows(active,seeds[active]||[]).then(async r=>{const next=await migrateWebsiteSettings(r);if(alive)setRows(next);});const unsub=subscribeModuleRows(active,seeds[active]||[],async r=>{const next=await migrateWebsiteSettings(r);if(alive)setRows(next);});return()=>{alive=false;unsub?.()}},[active,version]);
 
  const filtered=rows.filter(r=>JSON.stringify(r).toLowerCase().includes(query.toLowerCase()));
 
