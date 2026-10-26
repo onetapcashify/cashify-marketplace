@@ -1,57 +1,481 @@
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, serverTimestamp, setDoc, runTransaction, increment, onSnapshot } from 'firebase/firestore';
-import { db, auth, isFirebaseConfigured } from '../firebase/config.js';
-import { load,save } from '../utils/localStore.js';
+import {
+  initializeApp,
+  getApps,
+  getApp
+} from 'firebase/app';
 
-export const collectionNameForModule=(module)=>module.toLowerCase().replaceAll(' ','_').replaceAll('&','and');
-export async function listCollection(name) { if (!isFirebaseConfigured) return []; const snap=await getDocs(collection(db,name)); return snap.docs.map(d=>({id:d.id,...d.data()})); }
-export async function createRecord(name,payload) { if(!isFirebaseConfigured)return{id:crypto.randomUUID(),...payload}; const ref=await addDoc(collection(db,name),{...payload,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});return{id:ref.id,...payload}; }
-export async function updateRecord(name,id,payload) { if(!isFirebaseConfigured)return; await updateDoc(doc(db,name,id),{...payload,updatedAt:serverTimestamp()}); }
-export async function deleteRecord(name,id) { if(!isFirebaseConfigured)return; await deleteDoc(doc(db,name,id)); }
-export async function syncModuleRows(module,rows){
-  const key=`admin:${module}`; save(key,rows);
-  if(!isFirebaseConfigured) return;
-  const col=collectionNameForModule(module);
-  const existing=await getDocs(collection(db,col)); const wanted=new Set(rows.map(r=>String(r.id)));
-  await Promise.all(existing.docs.filter(d=>!wanted.has(d.id)).map(d=>deleteDoc(d.ref)));
-  await Promise.all(rows.map(r=>setDoc(doc(db,col,String(r.id)),{...r,updatedAt:serverTimestamp()},{merge:true})));
-}
-export async function upsertModuleRecord(module,row){
-  const key=`admin:${module}`; const rows=load(key,[]); const next=rows.some(x=>x.id===row.id)?rows.map(x=>x.id===row.id?{...x,...row}:x):[row,...rows]; save(key,next);
-  if(isFirebaseConfigured){try{await setDoc(doc(db,collectionNameForModule(module),String(row.id)),{...row,updatedAt:serverTimestamp()},{merge:true})}catch(e){console.warn(`${module} sync failed`,e)}}
-  return row;
-}
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+  runTransaction,
+  serverTimestamp
+} from 'firebase/firestore';
 
-export async function loadModuleRows(module,fallback=[]){
-  const key=`admin:${module}`;
-  if(isFirebaseConfigured){try{const rows=await listCollection(collectionNameForModule(module));if(rows.length){save(key,rows);return rows}}catch(e){console.warn('Firestore read failed',e)}}
-  const local=load(key,null); if(local!==null)return local; if(Array.isArray(fallback)&&fallback.length)save(key,fallback); return fallback;
-}
+const firebaseConfig={
+  apiKey:import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId:import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId:import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:import.meta.env.VITE_FIREBASE_APP_ID
+};
 
-export function subscribeModuleRows(module,fallback,onRows){
-  const key=`admin:${module}`;
-  if(isFirebaseConfigured){
-    const col=collectionNameForModule(module);
-    const unsub=onSnapshot(collection(db,col),snap=>{const rows=snap.docs.map(d=>({id:d.id,...d.data()}));if(rows.length){save(key,rows);onRows(rows)}else{const local=load(key,null);onRows(local!==null?local:fallback)}},err=>{console.warn('Firestore subscription failed',err);onRows(load(key,fallback))});
-    return unsub;
+const firebaseReady=
+  Boolean(
+    firebaseConfig.apiKey &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId &&
+    firebaseConfig.appId
+  );
+
+const app=
+  firebaseReady
+    ?(getApps().length?getApp():initializeApp(firebaseConfig))
+    :null;
+
+const db=
+  app
+    ?getFirestore(app)
+    :null;
+
+const moduleKey=name=>
+  String(name||'')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-|-$/g,'');
+
+const rowId=row=>
+  String(
+    row?.id||
+    row?.code||
+    row?.name||
+    `row-${Date.now()}`
+  );
+
+const localKey=name=>
+  `admin:${name}`;
+
+const readLocal=(name,fallback=[])=>{
+  try{
+    const raw=localStorage.getItem(localKey(name));
+    if(raw===null) return fallback;
+    const parsed=JSON.parse(raw);
+    return Array.isArray(parsed)?parsed:fallback;
+  }catch{
+    return fallback;
   }
-  onRows(load(key,fallback));
-  const handler=e=>{if(!e.detail?.key||e.detail.key===key)onRows(load(key,fallback))};
-  const storage=e=>{if(!e.key||e.key===key)onRows(load(key,fallback))};
-  window.addEventListener('app-data-change',handler);window.addEventListener('storage',storage);
-  return()=>{window.removeEventListener('app-data-change',handler);window.removeEventListener('storage',storage)};
-}
+};
 
-export async function getCoupon(code){
-  const normalized=code.trim().toUpperCase();
-  if(isFirebaseConfigured){try{const snap=await getDocs(collection(db,'coupons'));const row=snap.docs.map(d=>({id:d.id,...d.data()})).find(x=>(x.code||x.name||x.id||'').toUpperCase()===normalized);return row||null}catch(e){console.warn(e)}}
-  const coupons=load('admin:Coupons',[]); return coupons.find(x=>(x.code||x.name||x.id||'').toUpperCase()===normalized)||null;
-}
+const writeLocal=(name,rows)=>{
+  try{
+    localStorage.setItem(
+      localKey(name),
+      JSON.stringify(rows)
+    );
+  }catch{}
+};
 
-export async function claimCoupon(code,userKey){
-  const normalized=code.trim().toUpperCase();
-  if(isFirebaseConfigured && auth?.currentUser){
-    const ref=doc(db,'coupons',normalized); const claimRef=doc(db,'coupon_claims',`${normalized}__${userKey.replace(/[^a-zA-Z0-9_-]/g,'_')}`);
-    return runTransaction(db,async tx=>{const snap=await tx.get(ref);const prior=await tx.get(claimRef);let c;let isNew=false;if(!snap.exists()){if(normalized!=='SEQ88')throw new Error('Invalid coupon code.');c={id:'SEQ88',code:'SEQ88',name:'SEQ88',status:'Active',discountType:'percentage',discountValue:88,claimLimit:10,perUserLimit:1,usedCount:0};isNew=true;}else c={id:snap.id,...snap.data()};if(c.status!=='Active')throw new Error('This coupon is inactive.');const limit=Number(c.claimLimit||c.usageLimit||0);const used=Number(c.usedCount||0);if(limit>0&&used>=limit)throw new Error('This coupon has reached its claim limit.');const perUser=Number(c.perUserLimit||1);if(prior.exists()&&Number(prior.data().count||0)>=perUser)throw new Error('You have already used this coupon.');if(isNew)tx.set(ref,{...c,usedCount:1,updatedAt:serverTimestamp()});else tx.update(ref,{usedCount:increment(1),updatedAt:serverTimestamp()});tx.set(claimRef,{coupon:normalized,userKey,count:increment(1),updatedAt:serverTimestamp()},{merge:true});return c;});
+const rowsCollection=name=>
+  collection(
+    db,
+    'adminModules',
+    moduleKey(name),
+    'rows'
+  );
+
+const rowDocument=(name,id)=>
+  doc(
+    db,
+    'adminModules',
+    moduleKey(name),
+    'rows',
+    String(id)
+  );
+
+/*
+  Load shared module data.
+
+  IMPORTANT:
+  - Firestore is the source of truth whenever configured.
+  - Seed/local data is used only when the shared collection is empty.
+  - Local storage is only a cache, never the cross-device database.
+*/
+export async function loadModuleRows(name,seeds=[]){
+
+  if(!db){
+    return readLocal(name,seeds);
   }
-  const coupons=load('admin:Coupons',[]);const c=coupons.find(x=>(x.code||x.name||'').toUpperCase()===normalized&&x.status==='Active');if(!c)throw new Error('Invalid or inactive coupon code.');const claims=load('couponClaims',{});const item=claims[normalized]||{total:0,users:{}};const limit=Number(c.claimLimit||c.usageLimit||0);const perUser=Number(c.perUserLimit||1);if(limit>0&&item.total>=limit)throw new Error('This coupon has reached its claim limit.');if((item.users[userKey]||0)>=perUser)throw new Error('You have already used this coupon.');item.total++;item.users[userKey]=(item.users[userKey]||0)+1;claims[normalized]=item;c.usedCount=Number(c.usedCount||0)+1;save('couponClaims',claims);save('admin:Coupons',coupons);return c;
+
+  try{
+    const snap=
+      await getDocs(
+        rowsCollection(name)
+      );
+
+    if(!snap.empty){
+      const rows=
+        snap.docs.map(d=>({
+          ...d.data(),
+          id:d.data()?.id||d.id
+        }));
+
+      writeLocal(name,rows);
+      return rows;
+    }
+
+    /*
+      If the shared collection is empty, show seeds only as UI defaults.
+      Do NOT write them automatically from a customer browser.
+      The Admin panel becomes the authoritative creator/editor.
+    */
+    return Array.isArray(seeds)?seeds:[];
+
+  }catch(error){
+    console.error(
+      `[store] loadModuleRows(${name})`,
+      error
+    );
+
+    /*
+      Do not silently make another device look valid with
+      stale local data. Return local cache only as UI fallback.
+    */
+    return readLocal(name,seeds);
+  }
+}
+
+
+/*
+  Realtime subscription used by storefront + admin.
+*/
+export function subscribeModuleRows(
+  name,
+  seeds=[],
+  callback
+){
+
+  if(!db){
+    callback?.(
+      readLocal(name,seeds)
+    );
+    return ()=>{};
+  }
+
+  const ref=
+    rowsCollection(name);
+
+  return onSnapshot(
+    ref,
+    snap=>{
+
+      if(snap.empty){
+        callback?.(seeds);
+        return;
+      }
+
+      const rows=
+        snap.docs.map(d=>({
+          ...d.data(),
+          id:d.data()?.id||d.id
+        }));
+
+      writeLocal(name,rows);
+      callback?.(rows);
+
+    },
+    error=>{
+      console.error(
+        `[store] subscribeModuleRows(${name})`,
+        error
+      );
+
+      callback?.(
+        readLocal(name,seeds)
+      );
+    }
+  );
+}
+
+
+/*
+  Synchronize a complete admin module.
+
+  This is used by AdminPage after create/edit/delete.
+*/
+export async function syncModuleRows(
+  name,
+  rows=[]
+){
+
+  writeLocal(name,rows);
+
+  if(!db){
+    throw new Error(
+      'Firebase is not configured. Admin changes cannot be shared across devices.'
+    );
+  }
+
+  const current=
+    await getDocs(
+      rowsCollection(name)
+    );
+
+  const wanted=
+    new Set(
+      rows.map(row=>rowId(row))
+    );
+
+  const writes=
+    rows.map(row=>
+      setDoc(
+        rowDocument(name,rowId(row)),
+        {
+          ...row,
+          id:rowId(row),
+          updatedAt:serverTimestamp()
+        },
+        {merge:false}
+      )
+    );
+
+  const deletes=
+    current.docs
+      .filter(d=>!wanted.has(d.id))
+      .map(d=>
+        deleteDoc(
+          rowDocument(name,d.id)
+        )
+      );
+
+  await Promise.all([
+    ...writes,
+    ...deletes
+  ]);
+
+  return rows;
+}
+
+
+/*
+  Upsert one shared record.
+  Checkout uses this for Orders and Payments.
+*/
+export async function upsertModuleRecord(
+  name,
+  record
+){
+
+  if(!record){
+    throw new Error(
+      'Missing record.'
+    );
+  }
+
+  const id=
+    rowId(record);
+
+  if(!db){
+    throw new Error(
+      'Firebase is not configured. This record cannot be shared across devices.'
+    );
+  }
+
+  await setDoc(
+    rowDocument(name,id),
+    {
+      ...record,
+      id,
+      updatedAt:serverTimestamp()
+    },
+    {merge:true}
+  );
+
+  /*
+    Keep current browser cache in sync too.
+  */
+  const existing=
+    readLocal(name,[]);
+
+  const next=
+    existing.some(x=>String(x.id)===id)
+      ?existing.map(x=>
+          String(x.id)===id
+            ?{...x,...record,id}
+            :x
+        )
+      :[
+          { ...record,id },
+          ...existing
+        ];
+
+  writeLocal(name,next);
+
+  return {
+    ...record,
+    id
+  };
+}
+
+
+/*
+  Global coupon claim.
+
+  Coupon definition and usedCount live in Firestore, so claim limits
+  are shared across every browser/device.
+
+  Per-user usage is stored at:
+  couponClaims/{COUPON_CODE}/users/{userKey}
+*/
+export async function claimCoupon(
+  couponCode,
+  userKey
+){
+
+  if(!db){
+    throw new Error(
+      'Firebase is not configured. Coupon usage cannot be validated globally.'
+    );
+  }
+
+  const code=
+    String(couponCode||'')
+      .trim()
+      .toUpperCase();
+
+  if(!code){
+    throw new Error(
+      'Invalid coupon code.'
+    );
+  }
+
+  const couponRef=
+    rowDocument(
+      'Coupons',
+      code
+    );
+
+  const safeUserKey=
+    encodeURIComponent(
+      String(userKey||'guest')
+    )
+      .replace(/\./g,'%2E');
+
+  const claimRef=
+    doc(
+      db,
+      'couponClaims',
+      code,
+      'users',
+      safeUserKey
+    );
+
+  await runTransaction(
+    db,
+    async transaction=>{
+
+      const couponSnap=
+        await transaction.get(
+          couponRef
+        );
+
+      if(!couponSnap.exists()){
+        throw new Error(
+          'Coupon is no longer available.'
+        );
+      }
+
+      const coupon=
+        couponSnap.data();
+
+      if(coupon.status!=='Active'){
+        throw new Error(
+          'Coupon is inactive.'
+        );
+      }
+
+      const usedCount=
+        Number(
+          coupon.usedCount||0
+        );
+
+      const claimLimit=
+        Number(
+          coupon.claimLimit||0
+        );
+
+      if(
+        claimLimit>0 &&
+        usedCount>=claimLimit
+      ){
+        throw new Error(
+          'This coupon has reached its claim limit.'
+        );
+      }
+
+      const claimSnap=
+        await transaction.get(
+          claimRef
+        );
+
+      const userUsed=
+        Number(
+          claimSnap.exists()
+            ?claimSnap.data()?.count||0
+            :0
+        );
+
+      const perUserLimit=
+        Number(
+          coupon.perUserLimit||1
+        );
+
+      if(
+        perUserLimit>0 &&
+        userUsed>=perUserLimit
+      ){
+        throw new Error(
+          'You have already used this coupon.'
+        );
+      }
+
+      transaction.set(
+        couponRef,
+        {
+          ...coupon,
+          id:coupon.id||code,
+          usedCount:usedCount+1,
+          updatedAt:serverTimestamp()
+        },
+        {merge:true}
+      );
+
+      transaction.set(
+        claimRef,
+        {
+          count:userUsed+1,
+          userKey:String(userKey||'guest'),
+          updatedAt:serverTimestamp()
+        },
+        {merge:true}
+      );
+
+    }
+  );
+
+  return true;
+}
+
+
+/*
+  Optional helper for diagnostics.
+*/
+export function isSharedStoreReady(){
+  return Boolean(db);
 }
