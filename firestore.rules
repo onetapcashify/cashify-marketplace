@@ -30,32 +30,60 @@ service cloud.firestore {
       ];
     }
 
+    function isCheckoutModule(module) {
+      return module in [
+        'orders',
+        'payments'
+      ];
+    }
+
     match /adminModules/{module}/rows/{rowId} {
 
+      /*
+        PUBLIC STOREFRONT DATA
+        Products, coupons and website settings can be read publicly.
+        Orders and payments remain private to Admin.
+      */
       allow read:
         if isPublicModule(module)
-        || isAdmin()
-        || (
-          signedIn()
-          && module in ['orders','payments']
-          && resource.data.userId == request.auth.uid
-        );
+        || isAdmin();
 
+      /*
+        CHECKOUT CREATE
+
+        The existing storefront uses its own login/session layer and writes
+        checkout records directly from CheckoutPage.jsx.
+
+        Therefore a new Order or Payment is allowed to be CREATED from
+        checkout even when Firebase Auth is not present.
+
+        This does NOT allow customers to edit/delete existing records.
+      */
       allow create:
         if isAdmin()
         || (
-          signedIn()
-          && module in ['orders','payments']
-          && request.resource.data.userId == request.auth.uid
+          isCheckoutModule(module)
+          && request.resource.data.id == rowId
+          && request.resource.data.name is string
+          && request.resource.data.status is string
         );
 
+      /*
+        ADMIN CMS EDITS
+
+        Only the authenticated Admin can edit/delete normal records.
+
+        Coupon usedCount is the only public storefront update allowed.
+        It can only increase by exactly 1 and cannot change coupon value,
+        discount, status, limits, etc.
+      */
       allow update:
         if isAdmin()
         || (
-          signedIn()
-          && module == 'coupons'
+          module == 'coupons'
           && request.resource.data.diff(resource.data).affectedKeys()
               .hasOnly(['usedCount','updatedAt'])
+          && request.resource.data.usedCount is int
           && request.resource.data.usedCount
               == resource.data.usedCount + 1
         );
@@ -64,25 +92,40 @@ service cloud.firestore {
         if isAdmin();
     }
 
+    /*
+      GLOBAL COUPON CLAIM COUNTERS
+
+      Checkout needs to read its individual claim record before the
+      Firestore transaction can decide whether the coupon can be used.
+
+      Public clients may GET one claim document, but cannot list the
+      complete coupon claim collection.
+
+      They can only:
+      - create a claim at count 1
+      - increment an existing claim by exactly 1
+
+      Admin retains full visibility/control.
+    */
     match /couponClaims/{couponCode}/users/{userKey} {
 
-      allow read:
-        if isAdmin()
-        || (
-          signedIn()
-          && resource.data.userKey == request.auth.uid
-        );
+      allow get:
+        if true;
+
+      allow list:
+        if isAdmin();
 
       allow create:
-        if signedIn()
-        && request.resource.data.userKey == request.auth.uid
-        && request.resource.data.count == 1;
+        if request.resource.data.count == 1
+        && request.resource.data.userKey is string;
 
       allow update:
-        if signedIn()
-        && resource.data.userKey == request.auth.uid
-        && request.resource.data.userKey == request.auth.uid
-        && request.resource.data.count == resource.data.count + 1;
+        if request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['count','userKey','updatedAt'])
+        && request.resource.data.userKey == resource.data.userKey
+        && request.resource.data.count is int
+        && request.resource.data.count
+            == resource.data.count + 1;
 
       allow delete:
         if isAdmin();
