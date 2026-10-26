@@ -32,7 +32,6 @@ service cloud.firestore {
 
     match /adminModules/{module}/rows/{rowId} {
 
-      /* Public storefront content/settings/coupons. */
       allow read:
         if isPublicModule(module)
         || isAdmin()
@@ -42,7 +41,6 @@ service cloud.firestore {
           && resource.data.userId == request.auth.uid
         );
 
-      /* Only admin creates CMS/settings/coupons. */
       allow create:
         if isAdmin()
         || (
@@ -51,12 +49,6 @@ service cloud.firestore {
           && request.resource.data.userId == request.auth.uid
         );
 
-      /*
-        Admin can update everything.
-        A signed-in customer may only increment coupon usedCount by 1
-        as part of the coupon claim transaction; coupon definition
-        fields must remain unchanged.
-      */
       allow update:
         if isAdmin()
         || (

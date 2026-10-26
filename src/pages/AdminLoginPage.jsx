@@ -1,110 +1,191 @@
 import React,{useState} from 'react';
-import {Navigate,useNavigate} from 'react-router-dom';
-import {ShieldCheck} from 'lucide-react';
-import {ADMIN_EMAIL,getAdminSession,loginAdmin} from '../firebase/auth.js';
+import {Link,useNavigate} from 'react-router-dom';
+import {loginAdmin} from '../firebase/auth.js';
+import {signInAdminToFirebase} from '../firebase/adminFirestoreAuth.js';
 
 export default function AdminLoginPage(){
+
   const nav=useNavigate();
 
-  const [email,setEmail]=useState(ADMIN_EMAIL),
-    [password,setPassword]=useState(''),
-    [error,setError]=useState(''),
-    [busy,setBusy]=useState(false);
-
-  if(getAdminSession()){
-    return <Navigate to="/admclonemin" replace/>;
-  }
+  const [email,setEmail]=useState('onetapcashify@gmail.com');
+  const [password,setPassword]=useState('');
+  const [error,setError]=useState('');
+  const [loading,setLoading]=useState(false);
 
   const submit=async e=>{
+
     e.preventDefault();
 
+    if(loading) return;
+
     setError('');
-    setBusy(true);
+    setLoading(true);
 
     try{
-      await loginAdmin(email,password);
+
+      /*
+        Keep the project's existing Admin authentication/session.
+      */
+      const result=
+        await loginAdmin(
+          email.trim(),
+          password
+        );
+
+      /*
+        Some existing loginAdmin implementations return false on
+        invalid credentials, while others throw. Support both.
+      */
+      if(result===false){
+
+        setError(
+          'Invalid admin email or password.'
+        );
+
+        return;
+      }
+
+      /*
+        Also authenticate the browser with Firebase Auth.
+        Firestore security rules require this identity before
+        Admin can create/edit/delete shared data.
+      */
+      await signInAdminToFirebase(
+        email.trim(),
+        password
+      );
 
       nav(
         '/admclonemin',
         {replace:true}
       );
 
-    }catch(e){
+    }catch(err){
 
-      setError(
-        e.message||
-        'Admin login failed.'
+      console.error(
+        'Admin login failed:',
+        err
       );
+
+      const code=
+        String(err?.code||'');
+
+      if(
+        code.includes('auth/invalid-credential') ||
+        code.includes('auth/wrong-password') ||
+        code.includes('auth/user-not-found')
+      ){
+
+        setError(
+          'Invalid admin email or password.'
+        );
+
+      }else if(
+        code.includes('auth/operation-not-allowed')
+      ){
+
+        setError(
+          'Firebase Email/Password login is not enabled.'
+        );
+
+      }else{
+
+        setError(
+          err?.message||
+          'Unable to sign in. Please try again.'
+        );
+
+      }
 
     }finally{
 
-      setBusy(false);
+      setLoading(false);
 
     }
+
   };
 
   return (
-    <div className="admin-login-page">
+    <main className="admin-login-page">
 
-      <form
-        className="admin-login-card"
-        onSubmit={submit}
-      >
+      <section className="admin-login-card">
 
-        <div className="admin-login-icon">
-          <ShieldCheck/>
+        <div className="admin-login-head">
+          <p className="eyebrow">
+            Marketplace Admin
+          </p>
+
+          <h1>
+            Admin Login
+          </h1>
+
+          <p>
+            Sign in to manage the marketplace.
+          </p>
         </div>
 
-        <h1>Admin Login</h1>
-
-        <p>
-          Authorized administration access only.
-        </p>
-
-        {error&&(
-          <div className="auth-error">
-            {error}
-          </div>
-        )}
-
-        <label>
-          Admin Email
-
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={e=>
-              setEmail(e.target.value)
-            }
-          />
-        </label>
-
-        <label>
-          Password
-
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={e=>
-              setPassword(e.target.value)
-            }
-          />
-        </label>
-
-        <button
-          className="primary-btn block"
-          disabled={busy}
+        <form
+          className="admin-login-form"
+          onSubmit={submit}
         >
-          {busy
-            ?'Signing in...'
-            :'Login to Admin Panel'
-          }
-        </button>
 
-      </form>
+          <label>
+            Email
 
-    </div>
+            <input
+              type="email"
+              value={email}
+              onChange={e=>
+                setEmail(e.target.value)
+              }
+              autoComplete="username"
+              required
+            />
+          </label>
+
+          <label>
+            Password
+
+            <input
+              type="password"
+              value={password}
+              onChange={e=>
+                setPassword(e.target.value)
+              }
+              autoComplete="current-password"
+              required
+            />
+          </label>
+
+          {error&&(
+            <div
+              className="admin-login-error"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+          >
+            {loading
+              ?'Signing in...'
+              :'Login'}
+          </button>
+
+        </form>
+
+        <Link
+          to="/"
+          className="admin-login-back"
+        >
+          Back to website
+        </Link>
+
+      </section>
+
+    </main>
   );
 }
