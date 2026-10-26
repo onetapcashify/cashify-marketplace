@@ -6,7 +6,7 @@ import {Menu,X,Download,Plus,Search,Trash2,Pencil,ExternalLink,LogOut} from 'luc
 
 import {load,uid} from '../utils/localStore.js';
 
-import {loadModuleRows,syncModuleRows,subscribeModuleRows} from '../services/store.js';
+import {loadModuleRows,syncModuleRows,subscribeModuleRows,upsertModuleRecord} from '../services/store.js';
 
 import {logoutAdmin} from '../firebase/auth.js';
 
@@ -52,13 +52,26 @@ export default function AdminPage(){
 
  const [active,setActive]=useState('Dashboard'),[rows,setRows]=useState([]),[editing,setEditing]=useState(null),[query,setQuery]=useState(''),[side,setSide]=useState(false),[version,setVersion]=useState(0); const nav=useNavigate();
 
- useEffect(()=>{if(active==='Dashboard'){setRows([]);return;}let alive=true;const migrateWebsiteSettings=async list=>{if(active!=='Website Settings')return list;let changed=false;const next=list.map(row=>{if(String(row.id)==='upi'&&['subhamdebasish225@okicici','abc@okaxis','abcd@okicici','caashify@ptyes'].includes(String(row.value||'').trim().toLowerCase())){changed=true;return {...row,value:'casifyonetap@okicici'};}return row;});if(changed)await syncModuleRows('Website Settings',next);return next;};loadModuleRows(active,seeds[active]||[]).then(async r=>{const next=await migrateWebsiteSettings(r);if(alive)setRows(next);});const unsub=subscribeModuleRows(active,seeds[active]||[],async r=>{const next=await migrateWebsiteSettings(r);if(alive)setRows(next);});return()=>{alive=false;unsub?.()}},[active,version]);
+ useEffect(()=>{if(active==='Dashboard'){setRows([]);return;}let alive=true;loadModuleRows(active,seeds[active]||[]).then(r=>alive&&setRows(r));const unsub=subscribeModuleRows(active,seeds[active]||[],r=>alive&&setRows(r));return()=>{alive=false;unsub?.()}},[active,version]);
 
  const filtered=rows.filter(r=>JSON.stringify(r).toLowerCase().includes(query.toLowerCase()));
 
  const stats=useMemo(()=>[['Total Products',load('admin:Products',seeds.Products).length],['Total Orders',load('orders',seeds.Orders||[]).length],['Coupons',load('admin:Coupons',seeds.Coupons).length],['Admin Modules',modules.length-1]],[version]);
 
- const persist=async a=>{setRows(a);await syncModuleRows(active,a);setVersion(v=>v+1)};
+ const persist=async a=>{
+  setRows(a);
+
+  if(active==='Coupons'||active==='Website Settings'){
+    await Promise.all(
+      a.map(row=>
+        upsertModuleRecord(active,row)
+      )
+    );
+  }
+
+  await syncModuleRows(active,a);
+  setVersion(v=>v+1)
+ };
 
  const remove=id=>{if(confirm('Delete this record?'))persist(rows.filter(r=>r.id!==id))};
 

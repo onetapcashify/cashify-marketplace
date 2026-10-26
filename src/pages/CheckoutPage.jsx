@@ -246,55 +246,23 @@ export default function CheckoutPage(){
 
 
 
-  const findSetting=(id,name,fallback)=>{
+  const findSetting=(id,name,fallback)=>
 
-    const value=
+    settings.find(
 
-      settings.find(
+      x=>
 
-        x=>
+        x.status==='Active' &&
 
-          x.status==='Active' &&
+        (
 
-          (
+          String(x.id)===String(id) ||
 
-            String(x.id)===String(id) ||
+          x.name===name
 
-            x.name===name
+        )
 
-          )
-
-      )?.value||fallback;
-
-    if(
-
-      id==='upi' &&
-
-      [
-
-        'subhamdebasish225@okicici',
-
-        'abc@okaxis',
-
-        'abcd@okicici',
-
-        'caashify@ptyes'
-
-      ].includes(
-
-        String(value).trim().toLowerCase()
-
-      )
-
-    ){
-
-      return 'casifyonetap@okicici';
-
-    }
-
-    return value;
-
-  };
+    )?.value||fallback;
 
 
 
@@ -428,81 +396,12 @@ export default function CheckoutPage(){
 
 
 
-    const claims=load('couponClaims',{});
-
-
-
-    const entry=
-
-      claims[normalized]||
-
-      {
-
-        total:0,
-
-        users:{}
-
-      };
-
-
-
-    const userKey=
-
-      user?.uid||
-
-      address.email||
-
-      address.phone||
-
-      'guest-device';
-
-
-
-    if(
-
-      Number(c.claimLimit||0)>0 &&
-
-      (
-
-        Number(c.usedCount||0)>=Number(c.claimLimit) ||
-
-        entry.total>=Number(c.claimLimit)
-
-      )
-
-    ){
-
-      setCouponError(
-
-        'This coupon has reached its claim limit.'
-
-      );
-
-      return;
-
-    }
-
-
-
-    if(
-
-      (entry.users?.[userKey]||0)>=
-
-      Number(c.perUserLimit||1)
-
-    ){
-
-      setCouponError(
-
-        'You have already used this coupon.'
-
-      );
-
-      return;
-
-    }
-
-
+    /*
+      Coupon availability is shared/global.
+      Browser-local couponClaims must not decide whether the coupon
+      exists or is usable for another device. claimCoupon() remains
+      the final shared usage-limit check when the order is placed.
+    */
 
     setCoupon(c);
 
