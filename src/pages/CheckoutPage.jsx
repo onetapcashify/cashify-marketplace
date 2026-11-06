@@ -246,6 +246,57 @@ export default function CheckoutPage(){
 
 
 
+  /*
+    COD ADVANCE PAYMENT
+
+    This is NOT an extra charge.
+
+    Final amount below ₹5,000:
+    ₹400 advance is paid now.
+
+    Final amount ₹5,000 or above:
+    ₹500 advance is paid now.
+
+    If the final amount itself is lower than the normal
+    advance amount, only the final amount is collected now.
+  */
+
+  const codAdvance=
+
+    paymentMethod==='cod'
+
+      ?Math.min(
+
+          total,
+
+          total<5000?400:500
+
+        )
+
+      :0;
+
+
+
+  const codRemaining=
+
+    paymentMethod==='cod'
+
+      ?Math.max(0,total-codAdvance)
+
+      :0;
+
+
+
+  const payNowAmount=
+
+    paymentMethod==='cod'
+
+      ?codAdvance
+
+      :total;
+
+
+
   const findSetting=(id,name,fallback)=>
 
     settings.find(
@@ -300,9 +351,9 @@ export default function CheckoutPage(){
 
   const upiQuery=useMemo(
 
-    ()=>`pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(payee)}&am=${total.toFixed(2)}&cu=INR&tn=${encodeURIComponent(order)}`,
+    ()=>`pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(payee)}&am=${payNowAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(order)}`,
 
-    [upi,payee,total,order]
+    [upi,payee,payNowAmount,order]
 
   );
 
@@ -407,13 +458,6 @@ export default function CheckoutPage(){
 
     setCouponError('');
 
-    /*
-      Offer/coupon payments are prepaid only.
-      If COD was selected before applying the offer,
-      switch back to PhonePe and disable COD.
-    */
-    setPaymentMethod('phonepe');
-
   };
 
 
@@ -492,6 +536,26 @@ export default function CheckoutPage(){
 
 
 
+    if(
+
+      paymentMethod==='cod' &&
+
+      !utr.trim()
+
+    ){
+
+      alert(
+
+        `Please pay ₹${codAdvance.toLocaleString('en-IN')} now and enter the UTR / Transaction ID.`
+
+      );
+
+      return;
+
+    }
+
+
+
     try{
 
 
@@ -542,7 +606,7 @@ export default function CheckoutPage(){
 
           paymentMethod==='cod'
 
-            ?'Order Placed'
+            ?'COD Advance Submitted'
 
             :utr
 
@@ -561,6 +625,26 @@ export default function CheckoutPage(){
         total:
 
           total.toLocaleString('en-IN'),
+
+
+
+        codAdvance:
+
+          paymentMethod==='cod'
+
+            ?codAdvance
+
+            :0,
+
+
+
+        codRemaining:
+
+          paymentMethod==='cod'
+
+            ?codRemaining
+
+            :0,
 
 
 
@@ -612,7 +696,7 @@ export default function CheckoutPage(){
 
           paymentMethod==='cod'
 
-            ?'Cash on Delivery'
+            ?`Cash on Delivery • ₹${codAdvance.toLocaleString('en-IN')} paid now • ₹${codRemaining.toLocaleString('en-IN')} payable at doorstep by cash or online • UTR: ${utr}`
 
             :utr
 
@@ -664,7 +748,7 @@ export default function CheckoutPage(){
 
           paymentMethod==='cod'
 
-            ?'Cash on Delivery'
+            ?'COD Advance Submitted'
 
             :utr
 
@@ -676,7 +760,37 @@ export default function CheckoutPage(){
 
         value:
 
-          `₹${total.toLocaleString('en-IN')}`,
+          paymentMethod==='cod'
+
+            ?`₹${codAdvance.toLocaleString('en-IN')}`
+
+            :`₹${total.toLocaleString('en-IN')}`,
+
+
+
+        orderTotal:
+
+          total.toLocaleString('en-IN'),
+
+
+
+        codAdvance:
+
+          paymentMethod==='cod'
+
+            ?codAdvance
+
+            :0,
+
+
+
+        codRemaining:
+
+          paymentMethod==='cod'
+
+            ?codRemaining
+
+            :0,
 
 
 
@@ -690,7 +804,7 @@ export default function CheckoutPage(){
 
           paymentMethod==='cod'
 
-            ?'COD • Payable at delivery'
+            ?`COD advance • ₹${codAdvance.toLocaleString('en-IN')} paid now • Remaining ₹${codRemaining.toLocaleString('en-IN')} payable at doorstep by cash or online • UPI ${upi} • UTR ${utr}`
 
             :utr
 
@@ -1046,7 +1160,7 @@ export default function CheckoutPage(){
 
                 <p>
 
-                  Use an active offer code to save on prepaid UPI payment.
+                  Use an active offer code to save on your order.
 
                 </p>
 
@@ -1184,7 +1298,7 @@ export default function CheckoutPage(){
 
                     <small>
 
-                      Cash on Delivery is unavailable while this offer is applied.
+                      Cash on Delivery remains available with this offer.
 
                     </small>
 
@@ -1242,7 +1356,13 @@ export default function CheckoutPage(){
 
                 <p>
 
-                  Choose how you want to pay ₹{total.toLocaleString('en-IN')}.
+                  {paymentMethod==='cod'
+
+                    ?`Pay ₹${codAdvance.toLocaleString('en-IN')} now. Remaining ₹${codRemaining.toLocaleString('en-IN')} at doorstep.`
+
+                    :`Choose how you want to pay ₹${total.toLocaleString('en-IN')}.`
+
+                  }
 
                 </p>
 
@@ -1280,7 +1400,17 @@ export default function CheckoutPage(){
 
                   <strong>UPI</strong>
 
-                  <span>Pay using your preferred UPI app</span>
+                  <span>
+
+                    {paymentMethod==='cod'
+
+                      ?`Pay COD advance ₹${codAdvance.toLocaleString('en-IN')} using UPI`
+
+                      :'Pay using your preferred UPI app'
+
+                    }
+
+                  </span>
 
                 </div>
 
@@ -1550,7 +1680,7 @@ export default function CheckoutPage(){
 
 
 
-              {paymentMethod==='qr'&&(
+              {(paymentMethod==='qr'||paymentMethod==='cod')&&(
 
                 <div className="qrbox checkout-qr-panel">
 
@@ -1558,7 +1688,7 @@ export default function CheckoutPage(){
 
                   <h3>
 
-                    Scan & Pay ₹{total.toLocaleString('en-IN')}
+                    Scan & Pay ₹{payNowAmount.toLocaleString('en-IN')}
 
                   </h3>
 
@@ -1590,47 +1720,69 @@ export default function CheckoutPage(){
 
 
 
-                </div>
+                  {paymentMethod==='cod'&&(
 
-              )}
+                    <p>
+
+                      <b>Balance at delivery:</b> ₹{codRemaining.toLocaleString('en-IN')}
+
+                    </p>
+
+                  )}
 
 
-
-              {paymentMethod!=='cod'&&(
-
-                <div className="checkout-utr-wrap">
-
-                  <label htmlFor="checkout-utr">
-
-                    UTR / Transaction ID
-
-                  </label>
-
-                  <input
-
-                    id="checkout-utr"
-
-                    value={utr}
-
-                    onChange={e=>
-
-                      setUtr(e.target.value)
-
-                    }
-
-                    placeholder="Enter UTR / Transaction ID after payment"
-
-                  />
-
-                  <small>
-
-                    Enter the transaction reference after completing UPI payment.
-
-                  </small>
 
                 </div>
 
               )}
+
+
+
+              <div className="checkout-utr-wrap">
+
+                <label htmlFor="checkout-utr">
+
+                  UTR / Transaction ID
+
+                </label>
+
+                <input
+
+                  id="checkout-utr"
+
+                  value={utr}
+
+                  onChange={e=>
+
+                    setUtr(e.target.value)
+
+                  }
+
+                  placeholder={
+
+                    paymentMethod==='cod'
+
+                      ?`Enter UTR after paying ₹${codAdvance.toLocaleString('en-IN')}`
+
+                      :'Enter UTR / Transaction ID after payment'
+
+                  }
+
+                />
+
+                <small>
+
+                  {paymentMethod==='cod'
+
+                    ?`Pay ₹${codAdvance.toLocaleString('en-IN')} now. Remaining ₹${codRemaining.toLocaleString('en-IN')} can be paid at doorstep by cash or online.`
+
+                    :'Enter the transaction reference after completing UPI payment.'
+
+                  }
+
+                </small>
+
+              </div>
 
 
 
@@ -1654,27 +1806,13 @@ export default function CheckoutPage(){
 
                     :''
 
-                } ${
-
-                  coupon
-
-                    ?'disabled'
-
-                    :''
-
                 }`}
-
-                disabled={Boolean(coupon)}
 
                 onClick={()=>{
 
-                  if(!coupon){
+                  setPaymentMethod('cod');
 
-                    setPaymentMethod('cod');
-
-                    setUtr('');
-
-                  }
+                  setUtr('');
 
                 }}
 
@@ -1694,13 +1832,7 @@ export default function CheckoutPage(){
 
                   <small>
 
-                    {coupon
-
-                      ?'Unavailable when an offer code is applied'
-
-                      :'Pay when your order is delivered'
-
-                    }
+                    Pay ₹{Math.min(total,total<5000?400:500).toLocaleString('en-IN')} now, remaining at doorstep
 
                   </small>
 
@@ -1708,29 +1840,11 @@ export default function CheckoutPage(){
 
 
 
-                {coupon
+                <span className="checkout-radio" aria-hidden="true">
 
-                  ?(
+                  <span/>
 
-                    <span className="checkout-payment-unavailable">
-
-                      UNAVAILABLE
-
-                    </span>
-
-                  )
-
-                  :(
-
-                    <span className="checkout-radio" aria-hidden="true">
-
-                      <span/>
-
-                    </span>
-
-                  )
-
-                }
+                </span>
 
 
 
@@ -1852,6 +1966,54 @@ export default function CheckoutPage(){
 
 
 
+          {paymentMethod==='cod'&&(
+
+            <>
+
+              <p>
+
+                <span>
+
+                  Pay Now
+
+                </span>
+
+
+
+                <b>
+
+                  ₹{codAdvance.toLocaleString('en-IN')}
+
+                </b>
+
+              </p>
+
+
+
+              <p>
+
+                <span>
+
+                  Pay at Doorstep
+
+                </span>
+
+
+
+                <b>
+
+                  ₹{codRemaining.toLocaleString('en-IN')}
+
+                </b>
+
+              </p>
+
+            </>
+
+          )}
+
+
+
           <button
 
             className="primary-btn block"
@@ -1864,7 +2026,7 @@ export default function CheckoutPage(){
 
             {paymentMethod==='cod'
 
-              ?'Place COD Order'
+              ?`Pay ₹${codAdvance.toLocaleString('en-IN')} Now & Place COD Order`
 
               :'Place Order'
 
@@ -1878,7 +2040,7 @@ export default function CheckoutPage(){
 
             {paymentMethod==='cod'
 
-              ?'Pay the order amount when the device is delivered.'
+              ?`₹${codAdvance.toLocaleString('en-IN')} is part of your final amount, not an extra charge. Remaining ₹${codRemaining.toLocaleString('en-IN')} can be paid at doorstep by cash or online.`
 
               :'UPI payment remains pending until verified by admin.'
 
