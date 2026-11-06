@@ -1680,19 +1680,251 @@ export default function CheckoutPage(){
 
 
 
-              {(paymentMethod==='qr'||paymentMethod==='cod')&&(
+              {paymentMethod==='cod'&&(
+
+                <div className="checkout-cod-advance-payment">
+
+                  <div className="checkout-payment-group-head">
+
+                    <div className="upi-pay-icon">
+
+                      <img
+
+                        src="https://s3n.cashify.in/estore/08af477c2db941be8ba3c9848418acbb.webp"
+
+                        alt="UPI"
+
+                      />
+
+                    </div>
+
+                    <div>
+
+                      <strong>
+
+                        Pay ₹{codAdvance.toLocaleString('en-IN')} Now
+
+                      </strong>
+
+                      <span>
+
+                        Choose any UPI payment option below. Remaining ₹{codRemaining.toLocaleString('en-IN')} is payable at doorstep.
+
+                      </span>
+
+                    </div>
+
+                  </div>
+
+
+
+                  <div className="upi-payment-options checkout-payment-options">
+
+                    <a
+
+                      className="upi-pay-option"
+
+                      href={phonePeUri}
+
+                    >
+
+                      <div className="upi-pay-icon phonepe-icon">
+
+                        <img
+
+                          src="https://cdn.simpleicons.org/phonepe/5F259F"
+
+                          alt="PhonePe"
+
+                        />
+
+                      </div>
+
+                      <div>
+
+                        <strong>PhonePe</strong>
+
+                        <span>Pay ₹{codAdvance.toLocaleString('en-IN')} now</span>
+
+                      </div>
+
+                      <span className="checkout-radio" aria-hidden="true">
+
+                        <span/>
+
+                      </span>
+
+                    </a>
+
+
+
+                    <a
+
+                      className="upi-pay-option"
+
+                      href={googlePayUri}
+
+                    >
+
+                      <div className="upi-pay-icon gpay-icon">
+
+                        <img
+
+                          src="https://cdn.simpleicons.org/googlepay/4285F4"
+
+                          alt="Google Pay"
+
+                        />
+
+                      </div>
+
+                      <div>
+
+                        <strong>Google Pay</strong>
+
+                        <span>Pay ₹{codAdvance.toLocaleString('en-IN')} now</span>
+
+                      </div>
+
+                      <span className="checkout-radio" aria-hidden="true">
+
+                        <span/>
+
+                      </span>
+
+                    </a>
+
+
+
+                    <a
+
+                      className="upi-pay-option"
+
+                      href={paytmUri}
+
+                    >
+
+                      <div className="upi-pay-icon paytm-icon">
+
+                        <img
+
+                          src="https://cdn.simpleicons.org/paytm/00BAF2"
+
+                          alt="Paytm"
+
+                        />
+
+                      </div>
+
+                      <div>
+
+                        <strong>Paytm</strong>
+
+                        <span>Pay ₹{codAdvance.toLocaleString('en-IN')} now</span>
+
+                      </div>
+
+                      <span className="checkout-radio" aria-hidden="true">
+
+                        <span/>
+
+                      </span>
+
+                    </a>
+
+
+
+                    <a
+
+                      className="upi-pay-option any-upi"
+
+                      href={uri}
+
+                    >
+
+                      <div className="upi-pay-icon">
+
+                        <img
+
+                          src="https://s3n.cashify.in/estore/08af477c2db941be8ba3c9848418acbb.webp"
+
+                          alt="UPI"
+
+                        />
+
+                      </div>
+
+                      <div>
+
+                        <strong>Any UPI App</strong>
+
+                        <span>Pay ₹{codAdvance.toLocaleString('en-IN')} now</span>
+
+                      </div>
+
+                      <span className="checkout-radio" aria-hidden="true">
+
+                        <span/>
+
+                      </span>
+
+                    </a>
+
+                  </div>
+
+
+
+                  <div className="qrbox checkout-qr-panel">
+
+                    <h3>
+
+                      Or Scan & Pay ₹{codAdvance.toLocaleString('en-IN')}
+
+                    </h3>
+
+                    <QRCodeSVG
+
+                      value={uri}
+
+                      size={210}
+
+                    />
+
+                    <p>
+
+                      <b>UPI:</b> {upi}
+
+                    </p>
+
+                    <p>
+
+                      <b>Order:</b> {order}
+
+                    </p>
+
+                    <p>
+
+                      <b>Balance at delivery:</b> ₹{codRemaining.toLocaleString('en-IN')}
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+              )}
+
+
+
+              {paymentMethod==='qr'&&(
 
                 <div className="qrbox checkout-qr-panel">
-
-
 
                   <h3>
 
                     Scan & Pay ₹{payNowAmount.toLocaleString('en-IN')}
 
                   </h3>
-
-
 
                   <QRCodeSVG
 
@@ -1702,35 +1934,17 @@ export default function CheckoutPage(){
 
                   />
 
-
-
                   <p>
 
                     <b>UPI:</b> {upi}
 
                   </p>
 
-
-
                   <p>
 
                     <b>Order:</b> {order}
 
                   </p>
-
-
-
-                  {paymentMethod==='cod'&&(
-
-                    <p>
-
-                      <b>Balance at delivery:</b> ₹{codRemaining.toLocaleString('en-IN')}
-
-                    </p>
-
-                  )}
-
-
 
                 </div>
 
