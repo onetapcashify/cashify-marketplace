@@ -251,14 +251,11 @@ export default function CheckoutPage(){
 
     This is NOT an extra charge.
 
-    Final amount below ₹5,000:
-    ₹400 advance is paid now.
+    Flat COD advance:
+    ₹199 is paid now.
 
-    Final amount ₹5,000 or above:
-    ₹500 advance is paid now.
-
-    If the final amount itself is lower than the normal
-    advance amount, only the final amount is collected now.
+    If the final amount itself is lower than ₹199,
+    only the final amount is collected now.
   */
 
   const codAdvance=
@@ -269,7 +266,7 @@ export default function CheckoutPage(){
 
           total,
 
-          total<5000?400:500
+          199
 
         )
 
@@ -1852,7 +1849,7 @@ export default function CheckoutPage(){
 
                   <small>
 
-                    Pay ₹{Math.min(total,total<5000?400:500).toLocaleString('en-IN')} now, remaining at doorstep
+                    Pay ₹{Math.min(total,199).toLocaleString('en-IN')} now, remaining at doorstep
 
                   </small>
 
